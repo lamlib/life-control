@@ -1,13 +1,17 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
+import { UserLoginExternal } from "./userLoginExternal.entity";
 
 @Entity()
 export class ExternalProvider {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('increment', { type: 'int' })
     externalProviderId: number;
 
-    @Column()
+    @Column({ type: 'varchar', length: 50, unique: true })
     externalProviderName: string;
 
-    @Column()
+    @Column({ type: 'varchar', length: 255 })
     externalProviderWSEndpoint: string;
+
+    @OneToMany(() => UserLoginExternal, userLoginExternal => userLoginExternal.externalProvider)
+    userLogins: UserLoginExternal[];
 }

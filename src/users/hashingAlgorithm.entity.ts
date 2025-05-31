@@ -1,10 +1,14 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
+import { UserLogin } from "./userLogin.entity";
 
 @Entity()
 export class HashingAlgorithm {
-    @PrimaryGeneratedColumn()
-    hashingAlgorithId: number;
+    @PrimaryGeneratedColumn('increment', { type: 'int' })
+    hashingAlgorithmId: number;
 
-    @Column()
-    hashingAlgorithName: string;
+    @Column({ type: 'varchar', length: 20, unique: true })
+    hashingAlgorithmName: string;
+
+    @OneToMany(() => UserLogin, userLogin => userLogin.hashingAlgorithm)
+    userLogins: UserLogin[];
 }

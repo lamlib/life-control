@@ -1,10 +1,14 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
+import { UserLogin } from "./userLogin.entity";
 
 @Entity()
 export class EmailValidationStatus {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('increment', { type: 'int' })
     emailValidationStatusId: number;
 
-    @Column()
+    @Column({ type: 'varchar', length: 50, unique: true })
     emailValidationStatusDescription: string;
+
+    @OneToMany(() => UserLogin, userLogin => userLogin.emailValidationStatus)
+    userLogins: UserLogin[];
 }

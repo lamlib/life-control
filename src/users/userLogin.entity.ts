@@ -1,40 +1,56 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
+import { UserAccount } from "./userAccount.entity";
+import { HashingAlgorithm } from "./hashingAlgorithm.entity";
+import { EmailValidationStatus } from "./emailValidationStatus.entity";
+import { UserLoginExternal } from "./userLoginExternal.entity";
 
 @Entity()
 export class UserLogin {
-    @PrimaryGeneratedColumn()
-    userLoginId: number;
-
-    @Column()
+    @Column({ type: 'varchar', length: 50, unique: true })
     userLoginName: string;
 
-    @Column()
+    @Column({ type: 'varchar', length: 255, nullable: false })
     userLoginPasswordHash: string;
 
-    @Column()
+    @Column({ type: 'varchar', length: 128, nullable: false })
     userLoginPasswordSalt: string;
 
-    @Column()
-    userLoginEmailAdress: string;
+    @Column({ type: 'varchar', length: 255, unique: true })
+    userLoginEmailAddress: string;
 
-    @Column()
-    userLoginComfirmationToken: string;
+    @Column({ type: 'varchar', length: 128, nullable: true })
+    userLoginConfirmationToken: string;
 
-    @Column()
-    userLoginTokenGenerationTime: string;
+    @Column({ type: 'timestamp', nullable: true })
+    userLoginTokenGenerationTime: Date;
 
-    @Column()
+    @Column({ type: 'varchar', length: 128, nullable: true })
     userLoginPasswordRecoveryToken: string;
 
-    @Column()
-    userLoginRecoveryTokenTime: string;
+    @Column({ type: 'timestamp', nullable: true })
+    userLoginRecoveryTokenTime: Date;
 
-    @Column()
+    @PrimaryColumn({ type: 'int' })
     userAccountId: number;
 
-    @Column()
+    @Column({ type: 'int' })
     hashingAlgorithmId: number;
 
-    @Column()
+    @Column({ type: 'int' })
     emailValidationStatusId: number;
+
+    @ManyToOne(() => UserAccount, userAccount => userAccount.userLogins, { nullable: false })
+    @JoinColumn({ name: 'userAccountId' })
+    userAccount: UserAccount;
+
+    @ManyToOne(() => HashingAlgorithm, { nullable: false })
+    @JoinColumn({ name: 'hashingAlgorithmId' })
+    hashingAlgorithm: HashingAlgorithm;
+
+    @ManyToOne(() => EmailValidationStatus, { nullable: false })
+    @JoinColumn({ name: 'emailValidationStatusId' })
+    emailValidationStatus: EmailValidationStatus;
+
+    @OneToMany(() => UserLoginExternal, userLoginExternal => userLoginExternal.userLogin)
+    externalLogins: UserLoginExternal[];
 }

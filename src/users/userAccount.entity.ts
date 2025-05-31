@@ -1,19 +1,31 @@
-import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
+import { UserRole } from "./userRole.entity";
+import { UserLogin } from "./userLogin.entity";
 
 @Entity()
 export class UserAccount {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('increment', { type: 'int' })
     userAccountId: number;
 
-    @Column()
+    @Column({ type: 'varchar', length: 50 })
     userAccountFirstName: string;
 
-    @Column()
+    @Column({ type: 'varchar', length: 50 })
     userAccountLastName: string;
 
-    @Column()
+    @Column({ type: 'char', length: 1, nullable: false })
     userAccountGender: string;
 
-    @Column()
-    userAccountDateOfBirth: string;
+    @Column({ type: 'date', nullable: false })
+    userAccountDateOfBirth: Date;
+
+    @Column({ type: 'int' })
+    userRoleId: number;
+
+    @ManyToOne(() => UserRole, { nullable: false })
+    @JoinColumn({ name: 'userRoleId' })
+    userRole: UserRole;
+
+    @OneToMany(() => UserLogin, userLogin => userLogin.userAccount)
+    userLogins: UserLogin[];
 }

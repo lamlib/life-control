@@ -1,10 +1,14 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
+import { UserRolePermission } from "./userRolePermission.entity";
 
 @Entity()
 export class UserPermission {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('increment', { type: 'int' })
     userPermissionId: number;
 
-    @Column()
+    @Column({ type: 'varchar', length: 100, unique: true })
     userPermissionDescription: string;
+
+    @OneToMany(() => UserRolePermission, rolePermission => rolePermission.userPermission)
+    rolePermissions: UserRolePermission[];
 }
