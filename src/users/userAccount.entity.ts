@@ -13,10 +13,10 @@ export class UserAccount {
     @Column({ type: 'varchar', length: 50 })
     userAccountLastName: string;
 
-    @Column({ type: 'char', length: 1, nullable: false })
+    @Column({ type: 'char', length: 1})
     userAccountGender: string;
 
-    @Column({ type: 'date', nullable: false })
+    @Column({ type: 'date', })
     userAccountDateOfBirth: Date;
 
     @Column({ type: 'int' })
