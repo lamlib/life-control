@@ -1,12 +1,12 @@
 import { Column, Entity, PrimaryColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { UserAccount } from "./userAccount.entity";
-import { HashingAlgorithm } from "./hashingAlgorithm.entity";
+import { HashingAlgorithm } from "../auth/hashingAlgorithm.entity";
 import { EmailValidationStatus } from "./emailValidationStatus.entity";
 import { UserLoginExternal } from "./userLoginExternal.entity";
 
 @Entity()
 export class UserLogin {
-    @Column({ type: 'varchar', length: 50, unique: true })
+    @Column({ type: 'varchar', length: 50, unique: true, nullable: true })
     userLoginName: string;
 
     @Column({ type: 'varchar', length: 255, nullable: false })
@@ -33,10 +33,10 @@ export class UserLogin {
     @PrimaryColumn({ type: 'int' })
     userAccountId: number;
 
-    @Column({ type: 'int' })
+    @Column({ type: 'int', nullable: true })
     hashingAlgorithmId: number;
 
-    @Column({ type: 'int' })
+    @Column({ type: 'int', nullable: true })
     emailValidationStatusId: number;
 
     @ManyToOne(() => UserAccount, userAccount => userAccount.userLogins, { nullable: false })

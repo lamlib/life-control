@@ -3,9 +3,9 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserPermission } from 'src/users/userPermission.entity';
-import { UserRole } from 'src/users/userRole.entity';
-import { UserRolePermission } from 'src/users/userRolePermission.entity';
+import { UserPermission } from 'src/auth/userPermission.entity';
+import { UserRole } from 'src/auth/userRole.entity';
+import { UserRolePermission } from 'src/auth/userRolePermission.entity';
 
 @Module({
   imports: [

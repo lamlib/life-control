@@ -5,7 +5,6 @@ import { Repository } from 'typeorm';
 import { UserAccount } from './userAccount.entity';
 import * as bcrypt from 'bcrypt';
 
-
 // Đây nên là một class/interface chuẩn để đại diện cho một user entity
 export type User = {
     userId: number;
@@ -60,17 +59,32 @@ export class UsersService {
         return userLogin;
     }
 
+    async validateUserLoginPassword(userLoginEmailAddress: string, userLoginPassword: string): Promise<UserLogin | null> {
+        const userLogin = await this.findOneUserLoginByEmailAdress(userLoginEmailAddress);  
+        if (!userLogin) {
+            return null; // Không tìm thấy người dùng
+        }
+        console.log(userLogin, userLoginPassword);
+        const isPasswordValid = await bcrypt.compare(userLoginPassword, userLogin.userLoginPasswordHash);
+        if (!isPasswordValid) {
+            return null; // Mật khẩu không hợp lệ
+        }
+        return userLogin; // Mật khẩu hợp lệ
+    }
+
     /**
      * Tạo mới người dùng đăng nhập qua tài khoản mật khẩu, nếu đã tồn tại thì lỗi
      */
-    async createUserLogin(userLoginEmailAddress: string, userLoginPassword: string): Promise<UserLogin> {
+    async createUserLogin(userLoginEmailAddress: string, userLoginPassword: string, userRoleId: number): Promise<UserLogin> {
         const userLoginExisted = await this.findOneUserLoginByEmailAdress(userLoginEmailAddress);
 
         if (userLoginExisted) throw new Error(`User with email ${userLoginEmailAddress} is existed, please using other email!` )
         
         let newUserAccount = new UserAccount();
-        newUserAccount = await this.userAccountRepository.create(newUserAccount);
+        newUserAccount.userRoleId = userRoleId;
+        newUserAccount = await this.userAccountRepository.save(newUserAccount);
         console.log(newUserAccount);
+        
 
         let newUserLogin = new UserLogin();
 
@@ -79,8 +93,7 @@ export class UsersService {
         newUserLogin.userLoginPasswordHash = await bcrypt.hash(userLoginPassword, newUserLogin.userLoginPasswordSalt);
         newUserLogin.userLoginEmailAddress = userLoginEmailAddress;
 
-        newUserLogin = await this.userLoginRepository.create(newUserLogin);
-        console.log(newUserLogin);
+        newUserLogin = await this.userLoginRepository.save(newUserLogin);
         return newUserLogin;
     }
 
