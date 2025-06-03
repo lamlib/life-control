@@ -1,0 +1,28 @@
+export default () => ({
+    port: Number(process.env.PORT) || 3000,
+    database: {
+        host: process.env.DATABASE_HOST,
+        port: process.env.DATABASE_PORT,
+        username: process.env.DATABASE_USERNAME,
+        password: process.env.DATABASE_PASSWORD,
+        name: process.env.DATABASE_NAME,
+        type: process.env.DATABASE_TYPE,
+    },
+    user: {
+        default: {
+            role: process.env.USER_DEFAULT_ROLE,
+            permission: process.env.USER_DEFAULT_PERMISSION,
+        },
+        login: {
+            credential: {
+                role: process.env.USER_LOGIN_DEFAULT_ROLE,
+                permission: process.env.USER_LOGIN_DEFAULT_PERMISSION,
+            },
+            external: {
+                role: process.env.USER_LOGIN_EXTERNAL_ROLE,
+                permission: process.env.USER_LOGIN_EXTERNAL_PERMISSION,
+            }
+        },
+    }
+})
+// https://docs.nestjs.com/techniques/configuration

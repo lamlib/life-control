@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
-import { UserLogin } from "./userLogin.entity";
+import { UserLogin } from "../users/userLogin.entity";
 
 @Entity()
 export class HashingAlgorithm {
