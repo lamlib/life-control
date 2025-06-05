@@ -20,7 +20,7 @@ import configuration from './config/configuration';
   imports: [
     // https://docs.nestjs.com/techniques/configuration
     ConfigModule.forRoot({
-      envFilePath: [ `.env.${process.env.NODE_ENV}`, `.env.example` ],
+      envFilePath: [ `.env.${process.env.NODE_ENV}`, `.env.development` ],
       load: [configuration],
     }),
     TypeOrmModule.forRootAsync({
