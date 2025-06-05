@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserPermission } from './userPermission.entity';
 import { UserRole } from './userRole.entity';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -24,15 +25,23 @@ export class AuthService {
         }
     }
 
-    async login(userLoginEmailAddress: string, userLoginPassword: string) {
-        const userLogin = await this.usersService.validateUserLoginPassword(userLoginEmailAddress, userLoginPassword);
+    async login(loginDto: LoginDto) {
+        const userLogin = await this.usersService.validateUserLoginPassword(loginDto.userLoginEmailAddress, loginDto.userLoginPassword);
         if (userLogin) {
             const userAccount = await this.usersService.findOneUserAccount(userLogin.userAccountId);
             return {
-                userId: userAccount.userAccountId,
-                username: userAccount.userAccountFirstName,
-                email: userLogin.userLoginEmailAddress,
+                data: {
+                    userId: userAccount.userAccountId,
+                    username: userAccount.userAccountFirstName,
+                    email: userLogin.userLoginEmailAddress,
+                },
+                status: HttpStatus.OK,
             };
+        } else {
+            return {
+                message: 'User not found!',
+                status: HttpStatus.NOT_FOUND,
+            }
         }
     }
 }
