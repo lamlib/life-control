@@ -1,21 +1,21 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
 import { TypeOrmModule, TypeOrmModuleAsyncOptions, TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm'; 
-import { UserAccount } from './users/userAccount.entity';
-import { UserPermission } from './auth/userPermission.entity';
-import { UserRole } from './auth/userRole.entity';
-import { UserRolePermission } from './auth/userRolePermission.entity';
-import { UserLogin } from './users/userLogin.entity';
-import { HashingAlgorithm } from './auth/hashingAlgorithm.entity';
-import { EmailValidationStatus } from './users/emailValidationStatus.entity';
-import { UserLoginExternal } from './users/userLoginExternal.entity';
-import { ExternalProvider } from './users/externalProvider.entity';
+import { UserAccount } from './modules/users/entities/userAccount.entity';
+import { UserPermission } from './modules/auth/entities/userPermission.entity';
+import { UserRole } from './modules/auth/entities/userRole.entity';
+import { UserRolePermission } from './modules/auth/entities/userRolePermission.entity';
+import { UserLogin } from './modules/users/entities/userLogin.entity';
+import { HashingAlgorithm } from './modules/auth/entities/hashingAlgorithm.entity';
+import { EmailValidationStatus } from './modules/users/entities/emailValidationStatus.entity';
+import { UserLoginExternal } from './modules/users/entities/userLoginExternal.entity';
+import { ExternalProvider } from './modules/users/entities/externalProvider.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
-import { TokenLogin } from './auth/entities/tokenLogin.entity';
+import { TokenLogin } from './modules/auth/entities/tokenLogin.entity';
 
 @Module({
   imports: [

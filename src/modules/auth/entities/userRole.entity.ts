@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
-import { UserAccount } from "../users/userAccount.entity";
+import { UserAccount } from "../../users/entities/userAccount.entity";
 import { UserRolePermission } from "./userRolePermission.entity";
 
 @Entity()

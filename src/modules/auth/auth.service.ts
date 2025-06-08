@@ -2,12 +2,14 @@ import { HttpStatus, Injectable, NotFoundException, UnauthorizedException } from
 import { UsersService } from '../users/users.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserRole } from './userRole.entity';
+import { UserRole } from './entities/userRole.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDTO } from './dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
 import { TokenLogin } from './entities/tokenLogin.entity';
 import { Request } from 'express';
+import { RefreshDTO } from './dto/refresh.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -20,8 +22,35 @@ export class AuthService {
         @InjectRepository(TokenLogin)
         private tokenLoginRepository: Repository<TokenLogin>,
 
+        private configService: ConfigService,
+
         private jwtService: JwtService
     ) {}
+
+    async refresh(refreshDTO: RefreshDTO) {
+        const tokenLogin = await this.tokenLoginRepository.findOneBy({ tokenLoginRefresh: refreshDTO.tokenLoginRefresh });
+        if(tokenLogin) {
+            if(tokenLogin.tokenLoginRefreshExpire.getTime() < Date.now()) {
+                this.tokenLoginRepository.remove(tokenLogin);
+                throw new UnauthorizedException('Refresh token không hợp lệ!');
+            }
+            tokenLogin.tokenLoginRefresh = await this.jwtService.signAsync({ userAccountId: tokenLogin.userAccountId }, {
+                expiresIn: this.configService.get<string>('jwt.refreshTokenExpires.string'),
+            });
+            this.tokenLoginRepository.save(tokenLogin);
+            return {
+                data: {
+                    accessToken: await this.jwtService.signAsync({ tokenLogin: tokenLogin.userAccountId }, {
+                        expiresIn: this.configService.get<string>('jwt.accessTokenExpires.string'),
+                    }),
+                    refreshToken: tokenLogin.tokenLoginRefresh,
+                    accessTokenExpire: new Date(Date.now() + parseInt(this.configService.get<string>('jwt.accessTokenExpires.number') as string))
+                }
+            }
+        } else {
+            throw new UnauthorizedException('Refresh token không hợp lệ!')
+        }
+    }
 
     async register(registerDTO :RegisterDTO) {
         const userRole = await this.userRoleRepository.findOneBy({ userRoleDescription: 'Guest' });
@@ -41,8 +70,10 @@ export class AuthService {
 
             const { userAccountId, userAccountFirstName } = userAccount;
 
-            tokenLogin.tokenLoginRefresh = await this.jwtService.signAsync({ userAccountId, userAccountFirstName });
-            tokenLogin.tokenLoginRefreshExpire = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 ngày
+            tokenLogin.tokenLoginRefresh = await this.jwtService.signAsync({ userAccountId }, {
+                expiresIn: this.configService.get<string>('jwt.refreshTokenExpires.string'),
+            });
+            tokenLogin.tokenLoginRefreshExpire = new Date(Date.now() + parseInt(this.configService.get<string>('jwt.refreshTokenExpires.number') as string));
             tokenLogin.userAccountId = userAccount.userAccountId;
         
             this.tokenLoginRepository.save(tokenLogin);
@@ -51,8 +82,9 @@ export class AuthService {
                     userId: userAccountId,
                     username: userAccountFirstName,
                     email: userLogin.userLoginEmailAddress,
-                    accessToken: await this.jwtService.signAsync({ userAccountId, userAccountFirstName }),
+                    accessToken: await this.jwtService.signAsync({ userAccountId }, { expiresIn: this.configService.get<string>('jwt.accessTokenExpires.string') }),
                     refreshToken: tokenLogin.tokenLoginRefresh,
+                    accessTokenExpire: new Date(Date.now() + parseInt(this.configService.get<string>('jwt.accessTokenExpires.number') as string))
                 },
                 status: HttpStatus.OK,
             };
