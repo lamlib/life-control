@@ -10,7 +10,6 @@ Chuyên mục: Authentication
 
 Với những kỹ thuật thiết kế cơ sở dũ liệu được chia sẻ dưới đây, việc thiết kế một mô hình dữ liệu xác thực người dùng sử dụng trong hệ thống xác thực người dùng trở nên dễ hiểu hơn bao giờ hết.
 
-
 Bản thiết kế của ứng dụng cần phải chỉ rõ cơ chế để ngăn không cho những người chưa được uỷ quyền truy cập. Các cơ chế này thường được xây dựng gọn trong một module xác thực. Điều đó giống như việc xây dựng một ngôi nhà có an ninh, ngăn chặn kẻ đột nhập bên cạch các chức năng khác của nó.
 
 Một bản thiết kế của một ngôi nhà quy định và hướng dẫn xem những gì có thể và không thể làm trong từng căn phòng trong ngôi nhà (chẳng hạn, bạn không thể đỗ xe trong phòng ngủ được).

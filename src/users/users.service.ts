@@ -4,6 +4,7 @@ import { UserLogin } from './userLogin.entity';
 import { Repository } from 'typeorm';
 import { UserAccount } from './userAccount.entity';
 import * as bcrypt from 'bcrypt';
+import { RegisterDTO } from 'src/auth/dto/register.dto';
 
 // Đây nên là một class/interface chuẩn để đại diện cho một user entity
 export type User = {
@@ -64,7 +65,6 @@ export class UsersService {
         if (!userLogin) {
             return null; // Không tìm thấy người dùng
         }
-        console.log(userLogin, userLoginPassword);
         const isPasswordValid = await bcrypt.compare(userLoginPassword, userLogin.userLoginPasswordHash);
         if (!isPasswordValid) {
             return null; // Mật khẩu không hợp lệ
@@ -75,23 +75,21 @@ export class UsersService {
     /**
      * Tạo mới người dùng đăng nhập qua tài khoản mật khẩu, nếu đã tồn tại thì lỗi
      */
-    async createUserLogin(userLoginEmailAddress: string, userLoginPassword: string, userRoleId: number): Promise<UserLogin> {
-        const userLoginExisted = await this.findOneUserLoginByEmailAdress(userLoginEmailAddress);
+    async createUserLogin(registerDTO: RegisterDTO, userRoleId: number): Promise<UserLogin> {
+        const userLoginExisted = await this.findOneUserLoginByEmailAdress(registerDTO.userLoginEmailAddress);
 
-        if (userLoginExisted) throw new Error(`User with email ${userLoginEmailAddress} is existed, please using other email!` )
+        if (userLoginExisted) throw new Error(`User with email ${registerDTO.userLoginEmailAddress} is existed, please using other email!` )
         
         let newUserAccount = new UserAccount();
         newUserAccount.userRoleId = userRoleId;
         newUserAccount = await this.userAccountRepository.save(newUserAccount);
-        console.log(newUserAccount);
-        
 
         let newUserLogin = new UserLogin();
 
         newUserLogin.userAccountId = newUserAccount.userAccountId;
         newUserLogin.userLoginPasswordSalt = await bcrypt.genSalt();
-        newUserLogin.userLoginPasswordHash = await bcrypt.hash(userLoginPassword, newUserLogin.userLoginPasswordSalt);
-        newUserLogin.userLoginEmailAddress = userLoginEmailAddress;
+        newUserLogin.userLoginPasswordHash = await bcrypt.hash(registerDTO.userLoginPassword, newUserLogin.userLoginPasswordSalt);
+        newUserLogin.userLoginEmailAddress = registerDTO.userLoginEmailAddress;
 
         newUserLogin = await this.userLoginRepository.save(newUserLogin);
         return newUserLogin;

@@ -15,6 +15,7 @@ import { UserLoginExternal } from './users/userLoginExternal.entity';
 import { ExternalProvider } from './users/externalProvider.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
+import { TokenLogin } from './auth/entities/tokenLogin.entity';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import configuration from './config/configuration';
     ConfigModule.forRoot({
       envFilePath: [ `.env.${process.env.NODE_ENV}`, `.env.development` ],
       load: [configuration],
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -32,7 +34,7 @@ import configuration from './config/configuration';
         username: configService.get<string>('database.username'),
         password: configService.get<string>('database.password'),
         database: configService.get<string>('database.name'),
-        entities: [UserAccount, UserPermission, UserRole, UserRolePermission, UserLogin, HashingAlgorithm, EmailValidationStatus, UserLoginExternal, ExternalProvider],
+        entities: [UserAccount, UserPermission, UserRole, UserRolePermission, UserLogin, HashingAlgorithm, EmailValidationStatus, UserLoginExternal, ExternalProvider, TokenLogin],
         synchronize: true,
       }),
       inject: [ConfigService],
