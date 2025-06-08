@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UserLogin } from './userLogin.entity';
+import { UserLogin } from './entities/userLogin.entity';
 import { Repository } from 'typeorm';
-import { UserAccount } from './userAccount.entity';
+import { UserAccount } from './entities/userAccount.entity';
 import * as bcrypt from 'bcrypt';
-import { RegisterDTO } from 'src/auth/dto/register.dto';
+import { RegisterDTO } from 'src/modules/auth/dto/register.dto';
 
 // Đây nên là một class/interface chuẩn để đại diện cho một user entity
 export type User = {

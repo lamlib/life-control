@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { UserAccount } from "./userAccount.entity";
-import { HashingAlgorithm } from "../auth/hashingAlgorithm.entity";
+import { HashingAlgorithm } from "../../auth/entities/hashingAlgorithm.entity";
 import { EmailValidationStatus } from "./emailValidationStatus.entity";
 import { UserLoginExternal } from "./userLoginExternal.entity";
 

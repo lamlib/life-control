@@ -26,6 +26,14 @@ export default () => ({
     },
     jwt: {
         secret: 'This is a secret string, using another string and do not expose it to other people',
+        accessTokenExpires: {
+            string: '5m',
+            number: 1000 * 60 * 5,
+        },
+        refreshTokenExpires: {
+            string: '7d',
+            number: 1000 * 60 * 60 * 24,
+        },
     },
     isPublicKey: 'isPublic',
 })
