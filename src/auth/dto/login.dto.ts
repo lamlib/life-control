@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsEmail, IsNotEmpty, IsString, IsStrongPassword } from "class-validator";
+import { IsEmail, IsNotEmpty, IsString } from "class-validator";
 
 export class LoginDto {
     @ApiProperty({ description: 'Địa chỉ email đã đăng ký làm tài khoản của người dùng', example: 'lamlib2023@gmail.com' })

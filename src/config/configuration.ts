@@ -23,6 +23,10 @@ export default () => ({
                 permission: process.env.USER_LOGIN_EXTERNAL_PERMISSION,
             }
         },
-    }
+    },
+    jwt: {
+        secret: 'This is a secret string, using another string and do not expose it to other people',
+    },
+    isPublicKey: 'isPublic',
 })
 // https://docs.nestjs.com/techniques/configuration

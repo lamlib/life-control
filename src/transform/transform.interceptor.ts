@@ -1,27 +1,25 @@
 import { CallHandler, ExecutionContext, HttpStatus, Injectable, NestInterceptor } from '@nestjs/common';
 import { map, Observable } from 'rxjs';
 
-export interface Response<T> {
+export interface StardardResponse<T> {
   data: T;
   status: string;
   message: string;
 }
 
 @Injectable()
-export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<Response<T>> {
+export class TransformInterceptor<T> implements NestInterceptor<T, StardardResponse<T>> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<StardardResponse<T>> {
     const ctx = context.switchToHttp();
     const response = ctx.getResponse();
     const status = response.statusCode;
 
     return next.handle().pipe(
       map(data => {
-        console.log(data);
         const responseData = data ?? {};
         const message = this.getDefaultMessage(status);
         const finalMessage = responseData.message ?? message;
         const finalStatus = responseData.status ?? status;
-        console.log(responseData);
         
         if (responseData) {
           delete responseData.message;
