@@ -7,7 +7,7 @@ export class RegisterDTO {
     @IsEmail()
     @IsNotEmpty()
     @Transform(({value}) => value.trim().toLowerCase())
-    readonly userLoginEmailAddress: string;
+    readonly emailAdress: string;
 
     @ApiProperty({ description: 'Mật khẩu tài khoản muốn đăng ký', example: 'pass123@SECRET' })
     @IsString()

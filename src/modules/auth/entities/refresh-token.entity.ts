@@ -1,16 +1,16 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class TokenLogin {
+export class Token {
     @PrimaryGeneratedColumn()
-    tokenLoginId: number;
+    id: number;
 
     @Column({ type: 'varchar', nullable: false })
-    tokenLoginRefresh: string;
+    refreshToken: string;
 
     @Column({ type: 'timestamp', nullable: false })
-    tokenLoginRefreshExpire: Date;
+    refreshTokenExpire: Date;
 
     @Column({ type: 'int', nullable: false })
-    userAccountId: number;
+    accountId: number;
 }

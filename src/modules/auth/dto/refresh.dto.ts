@@ -7,5 +7,5 @@ export class RefreshDTO {
     @IsString()
     @IsNotEmpty()
     @Transform(({value}) => value.trim())
-    readonly tokenLoginRefresh: string;
+    readonly refreshToken: string;
 }

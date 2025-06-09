@@ -3,12 +3,12 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserPermission } from 'src/modules/auth/entities/userPermission.entity';
-import { UserRole } from 'src/modules/auth/entities/userRole.entity';
-import { UserRolePermission } from 'src/modules/auth/entities/userRolePermission.entity';
+import { Permission } from 'src/modules/auth/entities/permission.entity';
+import { Role } from 'src/modules/auth/entities/role.entity';
+import { RolePermission } from 'src/modules/auth/entities/role-permission.entity';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TokenLogin } from './entities/tokenLogin.entity';
+import { Token } from './entities/refresh-token.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
 
@@ -16,7 +16,7 @@ import { AuthGuard } from './auth.guard';
   imports: [
     ConfigModule,
     UsersModule,
-    TypeOrmModule.forFeature([UserPermission, UserRole, UserRolePermission, TokenLogin]),
+    TypeOrmModule.forFeature([Permission, Role, RolePermission, Token]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

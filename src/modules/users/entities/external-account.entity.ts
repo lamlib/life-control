@@ -1,11 +1,11 @@
 import { Column, Entity, PrimaryColumn, ManyToOne, JoinColumn } from "typeorm";
-import { UserLogin } from "./userLogin.entity";
-import { ExternalProvider } from "./externalProvider.entity";
+import { ExternalProvider } from "./external-provider.entity";
+import { Account } from "./account.entity";
 
 @Entity()
-export class UserLoginExternal {
+export class ExternalAccount {
     @PrimaryColumn({ type: 'int' })
-    userAccountId: number;
+    accountId: number;
 
     @PrimaryColumn({ type: 'int' })
     externalProviderId: number;
@@ -13,9 +13,9 @@ export class UserLoginExternal {
     @Column({ type: 'varchar', length: 255, nullable: false })
     externalProviderToken: string;
 
-    @ManyToOne(() => UserLogin, userLogin => userLogin.externalLogins, { nullable: false })
-    @JoinColumn({ name: 'userAccountId' })
-    userLogin: UserLogin;
+    @ManyToOne(() => Account, { nullable: false })
+    @JoinColumn({ name: 'accountId' })
+    account: Account;
 
     @ManyToOne(() => ExternalProvider, { nullable: false })
     @JoinColumn({ name: 'externalProviderId' })
