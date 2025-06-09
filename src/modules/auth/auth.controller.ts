@@ -7,7 +7,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { Request } from 'express';
 import { RefreshDTO } from './dto/refresh.dto';
 
-@ApiTags('Authentication')
+@ApiTags('Xác thực')
 @Controller('auth')
 export class AuthController {
     constructor(private authService: AuthService) {}
