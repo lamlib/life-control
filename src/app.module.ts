@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { TypeOrmModule, TypeOrmModuleAsyncOptions, TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm'; 
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'; 
 import { UserAccount } from './modules/users/entities/userAccount.entity';
 import { UserPermission } from './modules/auth/entities/userPermission.entity';
 import { UserRole } from './modules/auth/entities/userRole.entity';
@@ -42,7 +40,5 @@ import { TokenLogin } from './modules/auth/entities/tokenLogin.entity';
     AuthModule,
     UsersModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}
