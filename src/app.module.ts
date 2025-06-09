@@ -2,18 +2,18 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'; 
-import { UserAccount } from './modules/users/entities/userAccount.entity';
-import { UserPermission } from './modules/auth/entities/userPermission.entity';
-import { UserRole } from './modules/auth/entities/userRole.entity';
-import { UserRolePermission } from './modules/auth/entities/userRolePermission.entity';
-import { UserLogin } from './modules/users/entities/userLogin.entity';
-import { HashingAlgorithm } from './modules/auth/entities/hashingAlgorithm.entity';
-import { EmailValidationStatus } from './modules/users/entities/emailValidationStatus.entity';
-import { UserLoginExternal } from './modules/users/entities/userLoginExternal.entity';
-import { ExternalProvider } from './modules/users/entities/externalProvider.entity';
+import { Account } from './modules/users/entities/account.entity';
+import { Permission } from './modules/auth/entities/permission.entity';
+import { Role } from './modules/auth/entities/role.entity';
+import { RolePermission } from './modules/auth/entities/role-permission.entity';
+import { InternalAccount } from './modules/users/entities/internal-account.entity';
+import { HashingAlgorithm } from './modules/auth/entities/hashing-algorithm.entity';
+import { EmailStatus } from './modules/users/entities/email-status.entity';
+import { ExternalAccount } from './modules/users/entities/external-account.entity';
+import { ExternalProvider } from './modules/users/entities/external-provider.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
-import { TokenLogin } from './modules/auth/entities/tokenLogin.entity';
+import { Token } from './modules/auth/entities/refresh-token.entity';
 import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
 
 @Module({
@@ -47,7 +47,7 @@ import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
         username: configService.get<string>('database.username'),
         password: configService.get<string>('database.password'),
         database: configService.get<string>('database.name'),
-        entities: [UserAccount, UserPermission, UserRole, UserRolePermission, UserLogin, HashingAlgorithm, EmailValidationStatus, UserLoginExternal, ExternalProvider, TokenLogin],
+        entities: [Account, Permission, Role, RolePermission, InternalAccount, HashingAlgorithm, EmailStatus, ExternalAccount, ExternalProvider, Token],
         synchronize: true,
       }),
       inject: [ConfigService],

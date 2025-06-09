@@ -2,26 +2,27 @@ import { HttpStatus, Injectable, NotFoundException, UnauthorizedException } from
 import { UsersService } from '../users/users.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserRole } from './entities/userRole.entity';
+import { Role } from './entities/role.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDTO } from './dto/register.dto';
 import { JwtService } from '@nestjs/jwt';
-import { TokenLogin } from './entities/tokenLogin.entity';
+import { Token } from './entities/refresh-token.entity';
 import { Request } from 'express';
 import { RefreshDTO } from './dto/refresh.dto';
 import { ConfigService } from '@nestjs/config';
 import { MailerService } from '@nestjs-modules/mailer';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class AuthService {
     constructor(
         private usersService: UsersService,
 
-        @InjectRepository(UserRole)
-        private userRoleRepository: Repository<UserRole>,
+        @InjectRepository(Role)
+        private userRoleRepository: Repository<Role>,
 
-        @InjectRepository(TokenLogin)
-        private tokenLoginRepository: Repository<TokenLogin>,
+        @InjectRepository(Token)
+        private tokenLoginRepository: Repository<Token>,
 
         private configService: ConfigService,
 
@@ -31,22 +32,22 @@ export class AuthService {
     ) {}
 
     async refresh(refreshDTO: RefreshDTO) {
-        const tokenLogin = await this.tokenLoginRepository.findOneBy({ tokenLoginRefresh: refreshDTO.tokenLoginRefresh });
+        const tokenLogin = await this.tokenLoginRepository.findOneBy({ refreshToken: refreshDTO.refreshToken });
         if(tokenLogin) {
-            if(tokenLogin.tokenLoginRefreshExpire.getTime() < Date.now()) {
+            if(tokenLogin.refreshTokenExpire.getTime() < Date.now()) {
                 this.tokenLoginRepository.remove(tokenLogin);
                 throw new UnauthorizedException('Refresh token không hợp lệ!');
             }
-            tokenLogin.tokenLoginRefresh = await this.jwtService.signAsync({ userAccountId: tokenLogin.userAccountId }, {
+            tokenLogin.refreshToken = await this.jwtService.signAsync({ accountId: tokenLogin.accountId }, {
                 expiresIn: this.configService.get<string>('jwt.refreshTokenExpires.string'),
             });
             this.tokenLoginRepository.save(tokenLogin);
             return {
                 data: {
-                    accessToken: await this.jwtService.signAsync({ tokenLogin: tokenLogin.userAccountId }, {
+                    accessToken: await this.jwtService.signAsync({ tokenLogin: tokenLogin.accountId }, {
                         expiresIn: this.configService.get<string>('jwt.accessTokenExpires.string'),
                     }),
-                    refreshToken: tokenLogin.tokenLoginRefresh,
+                    refreshToken: tokenLogin.refreshToken,
                     accessTokenExpire: new Date(Date.now() + parseInt(this.configService.get<string>('jwt.accessTokenExpires.number') as string))
                 }
             }
@@ -56,37 +57,32 @@ export class AuthService {
     }
 
     async register(registerDTO :RegisterDTO) {
-        const userRole = await this.userRoleRepository.findOneBy({ userRoleDescription: 'Guest' });
-        if (userRole) {
-            await this.usersService.createUserLogin(registerDTO, userRole.userRoleId);
-        } else {
-            throw new Error('User role "Guest" not found');
-        }
+        await this.usersService.createUserLogin(registerDTO, RoleEnum.GUEST);
     }
 
     async login(loginDto: LoginDto) {
-        const userLogin = await this.usersService.validateUserLoginPassword(loginDto.userLoginEmailAddress, loginDto.userLoginPassword);
+        const userLogin = await this.usersService.validateUserLoginPassword(loginDto.emailAdress, loginDto.userLoginPassword);
         if (userLogin) {
-            const userAccount = await this.usersService.findOneUserAccount(userLogin.userAccountId);
+            const userAccount = await this.usersService.findOneUserAccount(userLogin.accountId);
             
-            const tokenLogin = new TokenLogin();
+            const tokenLogin = new Token();
 
-            const { userAccountId, userAccountFirstName } = userAccount;
+            const { accountId, firstName } = userAccount;
 
-            tokenLogin.tokenLoginRefresh = await this.jwtService.signAsync({ userAccountId }, {
+            tokenLogin.refreshToken = await this.jwtService.signAsync({ accountId }, {
                 expiresIn: this.configService.get<string>('jwt.refreshTokenExpires.string'),
             });
-            tokenLogin.tokenLoginRefreshExpire = new Date(Date.now() + parseInt(this.configService.get<string>('jwt.refreshTokenExpires.number') as string));
-            tokenLogin.userAccountId = userAccount.userAccountId;
+            tokenLogin.refreshTokenExpire = new Date(Date.now() + parseInt(this.configService.get<string>('jwt.refreshTokenExpires.number') as string));
+            tokenLogin.accountId = userAccount.accountId;
         
             this.tokenLoginRepository.save(tokenLogin);
             return {
                 data: {
-                    userId: userAccountId,
-                    username: userAccountFirstName,
-                    email: userLogin.userLoginEmailAddress,
-                    accessToken: await this.jwtService.signAsync({ userAccountId }, { expiresIn: this.configService.get<string>('jwt.accessTokenExpires.string') }),
-                    refreshToken: tokenLogin.tokenLoginRefresh,
+                    userId: accountId,
+                    username: firstName,
+                    email: userLogin.emailAdress,
+                    accessToken: await this.jwtService.signAsync({ accountId }, { expiresIn: this.configService.get<string>('jwt.accessTokenExpires.string') }),
+                    refreshToken: tokenLogin.refreshToken,
                     accessTokenExpire: new Date(Date.now() + parseInt(this.configService.get<string>('jwt.accessTokenExpires.number') as string))
                 },
                 status: HttpStatus.OK,

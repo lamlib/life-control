@@ -7,7 +7,7 @@ export class LoginDto {
     @IsEmail()
     @IsNotEmpty()
     @Transform(({value}) => value.trim().toLowerCase())
-    readonly userLoginEmailAddress: string;
+    readonly emailAdress: string;
 
     @ApiProperty({ description: 'Mật khẩu tài khoản người dùng', example: 'pass123@SECRET' })
     @IsString()

@@ -1,14 +1,14 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from "typeorm";
-import { UserLogin } from "../../users/entities/userLogin.entity";
+import { InternalAccount } from "../../users/entities/internal-account.entity";
 
 @Entity()
 export class HashingAlgorithm {
     @PrimaryGeneratedColumn('increment', { type: 'int' })
-    hashingAlgorithmId: number;
+    id: number;
 
     @Column({ type: 'varchar', length: 20, unique: true })
-    hashingAlgorithmName: string;
+    name: string;
 
-    @OneToMany(() => UserLogin, userLogin => userLogin.hashingAlgorithm)
-    userLogins: UserLogin[];
+    @OneToMany(() => InternalAccount, userLogin => userLogin.hashingAlgorithm)
+    internalAccounts: InternalAccount[];
 }
