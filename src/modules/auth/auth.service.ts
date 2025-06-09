@@ -10,6 +10,7 @@ import { TokenLogin } from './entities/tokenLogin.entity';
 import { Request } from 'express';
 import { RefreshDTO } from './dto/refresh.dto';
 import { ConfigService } from '@nestjs/config';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class AuthService {
@@ -24,7 +25,9 @@ export class AuthService {
 
         private configService: ConfigService,
 
-        private jwtService: JwtService
+        private jwtService: JwtService,
+
+        private readonly mailerService: MailerService,
     ) {}
 
     async refresh(refreshDTO: RefreshDTO) {
@@ -99,5 +102,15 @@ export class AuthService {
             message: 'Đọc thành công hồ sơ ngươi dùng',
             status: HttpStatus.OK,
         }
+    }
+
+    private async sendVerifyAccountMail(): Promise<void> {
+        this.mailerService.sendMail({
+            to: 'lamlib2023@gmail.com',
+            from: 'lamlib2023@gmail.com',
+            subject: 'Kiểm thử gửi mail',
+            text: 'Xin chào',
+            html: '<b>Xin chào</b>'
+        })
     }
 }

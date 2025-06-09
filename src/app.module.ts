@@ -14,6 +14,7 @@ import { ExternalProvider } from './modules/users/entities/externalProvider.enti
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
 import { TokenLogin } from './modules/auth/entities/tokenLogin.entity';
+import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -22,6 +23,20 @@ import { TokenLogin } from './modules/auth/entities/tokenLogin.entity';
       envFilePath: [ `.env.${process.env.NODE_ENV}`, `.env.development` ],
       load: [configuration],
       isGlobal: true,
+    }),
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService): MailerOptions => ({
+        transport: {
+          host: configService.get<string>('email.host'),
+          port: parseInt(configService.get<string>('email.port') as string),
+          auth: {
+            user: configService.get<string>('email.username'),
+            pass: configService.get<string>('email.password'),
+          }
+        }
+      })
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -39,6 +54,7 @@ import { TokenLogin } from './modules/auth/entities/tokenLogin.entity';
     }),
     AuthModule,
     UsersModule,
+    MailerModule,
   ],
 })
 export class AppModule {}
