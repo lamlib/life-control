@@ -12,30 +12,38 @@ import { RefreshDTO } from './dto/refresh.dto';
 export class AuthController {
     constructor(private authService: AuthService) {}
 
-    @Public()
     @ApiOperation({ summary: 'Đăng ký mới tài khoản' })
+    @Public()
     @Post('register')
-    register(@Body() registerDTO: RegisterDTO) {
-        return this.authService.register(registerDTO);
+    async register(@Body() registerDTO: RegisterDTO) {
+        const data = await this.authService.register(registerDTO);
+        const message = 'Đăng ký tài khoản thành công!'
+        return { data, message };
     }
 
-    @Public()
     @ApiOperation({ summary: 'Đăng nhập bằng tài khoản đã đăng ký' })
+    @Public()
     @Post('login')
-    login(@Body() loginDto: LoginDto) {
-        return this.authService.login(loginDto);
+    async login(@Body() loginDTO: LoginDto) {
+        const data = await this.authService.login(loginDTO);
+        const message = 'Đăng nhập thành công!'
+        return { data, message };
     }
 
-    @Public()
     @ApiOperation({ summary: 'Lấy lại access token bằng refresh token' })
+    @Public()
     @Post('refresh')
-    refresh(@Body() refreshDTO: RefreshDTO) {
-        return this.authService.refresh(refreshDTO);
+    async refresh(@Body() refreshDTO: RefreshDTO) {
+        const data = await this.authService.refresh(refreshDTO);
+        const message = 'Đọc hồ sơ người dùng thành công!'
+        return { data, message };
     }
 
     @ApiOperation({ summary: 'Đọc hồ sơ người dùng' })
     @Get('profile')
-    profile(@Req() request: Request) {
-        return this.authService.profile(request);
+    async profile(@Req() request: Request) {
+        const data = await this.authService.profile(request);
+        const message = 'Đọc hồ sơ người dùng thành công!'
+        return { data, message };
     }
 }
