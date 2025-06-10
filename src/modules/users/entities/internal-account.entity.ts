@@ -15,7 +15,7 @@ export class InternalAccount {
     passwordSalt: string;
 
     @Column({ type: 'varchar', length: 255, unique: true })
-    emailAdress: string;
+    emailAddress: string;
 
     @Column({ type: 'varchar', length: 128, nullable: true })
     confirmationToken: string;

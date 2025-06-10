@@ -1,11 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToMany, PrimaryColumn } from "typeorm";
 import { Role } from "../../auth/entities/role.entity";
 import { InternalAccount } from "./internal-account.entity";
 
 @Entity()
 export class Account {
     @PrimaryGeneratedColumn()
-    accountId: number;
+    id: number;
 
     @Column({ type: 'varchar', length: 50, nullable: true, })
     firstName: string;
@@ -19,7 +19,7 @@ export class Account {
     @Column({ type: 'date', nullable: true,})
     dateOfBirth: Date;
 
-    @Column({ type: 'int', nullable: false })
+    @PrimaryColumn({ type: 'int', nullable: false })
     roleId: number;
 
     @ManyToOne(() => Role, { nullable: false })
