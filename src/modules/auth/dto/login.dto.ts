@@ -14,4 +14,4 @@ export class LoginDto {
     @IsNotEmpty()
     @Transform(({value}) => value.trim())
     readonly password: string;
-}
+    }

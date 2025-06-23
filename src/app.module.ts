@@ -15,6 +15,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
 import { Token } from './modules/auth/entities/refresh-token.entity';
 import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
+import { FilesModule } from './modules/files/files.module';
+import { ArticlesModule } from './modules/articles/articles.module';
+import { Article } from './modules/articles/entities/article.entity';
 
 @Module({
   imports: [
@@ -47,7 +50,7 @@ import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
         username: configService.get<string>('database.username'),
         password: configService.get<string>('database.password'),
         database: configService.get<string>('database.name'),
-        entities: [Account, Permission, Role, RolePermission, InternalAccount, HashingAlgorithm, EmailStatus, ExternalAccount, ExternalProvider, Token],
+        entities: [Account, Permission, Role, RolePermission, InternalAccount, HashingAlgorithm, EmailStatus, ExternalAccount, ExternalProvider, Token, Article],
         synchronize: true,
       }),
       inject: [ConfigService],
@@ -55,6 +58,8 @@ import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
     AuthModule,
     UsersModule,
     MailerModule,
+    FilesModule,
+    ArticlesModule,
   ],
 })
 export class AppModule {}

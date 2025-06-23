@@ -1,7 +1,9 @@
 import { CallHandler, ExecutionContext, HttpStatus, Injectable, NestInterceptor } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { map, Observable } from 'rxjs';
+import { IS_SKIP_TRANSFORM } from '../constants/transform.constants';
 
-export interface StardardResponse<T> {
+interface StardardResponse<T> {
   data: T;
   status: string;
   message: string;
@@ -9,10 +11,21 @@ export interface StardardResponse<T> {
 
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<T, StardardResponse<T>> {
+  constructor(private reflector: Reflector) {}
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<StardardResponse<T>> {
     const ctx = context.switchToHttp();
     const response = ctx.getResponse();
     const status = response.statusCode;
+
+    const isSkipTranform = this.reflector.getAllAndOverride<boolean>(IS_SKIP_TRANSFORM, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if(isSkipTranform) {
+      return next.handle();
+    }
 
     return next.handle().pipe(
       map(data => {

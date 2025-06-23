@@ -5,9 +5,6 @@ import { Account } from "./account.entity";
 @Entity()
 export class ExternalAccount {
     @PrimaryColumn({ type: 'int' })
-    accountId: number;
-
-    @PrimaryColumn({ type: 'int' })
     externalProviderId: number;
 
     @Column({ type: 'varchar', length: 255, nullable: false })
