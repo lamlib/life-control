@@ -1,0 +1,1 @@
+export const IS_SKIP_TRANSFORM = 'isSkipTranform';

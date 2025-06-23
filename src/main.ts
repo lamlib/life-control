@@ -1,12 +1,14 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: false });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { cors: true });
 
   const config = new DocumentBuilder()
   .setTitle('Ứng dụng quản lý cuộc sống')
@@ -18,8 +20,9 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, documentFactory);
 
   app.useGlobalPipes(new ValidationPipe())
-  app.useGlobalInterceptors(new TransformInterceptor());
+  app.useGlobalInterceptors(new TransformInterceptor(app.get(Reflector)));
   app.useGlobalFilters(new HttpExceptionFilter());
+  
   await app.listen(process.env.PORT || 3000);
 }
 bootstrap();

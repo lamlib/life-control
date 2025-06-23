@@ -1,14 +1,14 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDTO } from './dto/register.dto';
-import { Public } from 'src/common/decorators/public.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { Request } from 'express';
 import { RefreshDTO } from './dto/refresh.dto';
 
 @ApiTags('Xác thực')
-@Controller('auth')
+@Controller('api/v1/auth')
 export class AuthController {
     constructor(private authService: AuthService) {}
 
@@ -18,7 +18,7 @@ export class AuthController {
     async register(@Body() registerDTO: RegisterDTO) {
         const data = await this.authService.register(registerDTO);
         const message = 'Đăng ký tài khoản thành công!'
-        return { data, message };
+        return { ...data, message };
     }
 
     @ApiOperation({ summary: 'Đăng nhập bằng tài khoản đã đăng ký' })
@@ -27,7 +27,7 @@ export class AuthController {
     async login(@Body() loginDTO: LoginDto) {
         const data = await this.authService.login(loginDTO);
         const message = 'Đăng nhập thành công!'
-        return { data, message };
+        return { ...data, message };
     }
 
     @ApiOperation({ summary: 'Lấy lại access token bằng refresh token' })
@@ -36,7 +36,7 @@ export class AuthController {
     async refresh(@Body() refreshDTO: RefreshDTO) {
         const data = await this.authService.refresh(refreshDTO);
         const message = 'Đọc hồ sơ người dùng thành công!'
-        return { data, message };
+        return { ...data, message };
     }
 
     @ApiOperation({ summary: 'Đọc hồ sơ người dùng' })
@@ -44,6 +44,21 @@ export class AuthController {
     async profile(@Req() request: Request) {
         const data = await this.authService.profile(request);
         const message = 'Đọc hồ sơ người dùng thành công!'
-        return { data, message };
+        return { ...data, message };
+    }
+
+    @ApiOperation({ summary: 'Gửi email xác nhận' })
+    @Post('email-confirm')
+    async sendEmailConfirm(@Req() request) {
+        this.authService.sendEmailConfirm(request);
+        const message = 'Gửi email xác nhận thành công!';
+        return { message };
+    }
+
+    @Patch('email-confirm')
+    async verifyEmailConfirm(@Param('confirmationToken') confirmationToken: string) {
+        this.authService.verifyEmailConfirm(confirmationToken);
+        const message = 'Xác nhận email thành công!';
+        return { message }
     }
 }

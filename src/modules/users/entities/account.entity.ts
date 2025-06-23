@@ -19,13 +19,13 @@ export class Account {
     @Column({ type: 'date', nullable: true,})
     dateOfBirth: Date;
 
-    @PrimaryColumn({ type: 'int', nullable: false })
+    @Column({ type: 'int', nullable: false })
     roleId: number;
 
     @ManyToOne(() => Role, { nullable: false })
     @JoinColumn({ name: 'roleId' })
     role: Role;
 
-    @OneToMany(() => InternalAccount, userLogin => userLogin.userAccount)
+    @OneToMany(() => InternalAccount, userLogin => userLogin.account)
     internalAccounts: InternalAccount[];
 }

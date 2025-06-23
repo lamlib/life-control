@@ -1,10 +1,13 @@
-import { Column, Entity, PrimaryColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
+import { Column, Entity, PrimaryColumn, ManyToOne, JoinColumn, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Account } from "./account.entity";
 import { HashingAlgorithm } from "../../auth/entities/hashing-algorithm.entity";
 import { EmailStatus } from "./email-status.entity";
 
 @Entity()
 export class InternalAccount {
+    @PrimaryGeneratedColumn()
+    id: number;
+
     @Column({ type: 'varchar', length: 50, unique: true, nullable: true })
     username: string;
 
@@ -18,10 +21,10 @@ export class InternalAccount {
     emailAddress: string;
 
     @Column({ type: 'varchar', length: 128, nullable: true })
-    confirmationToken: string;
+    confirmationToken: string | null;
 
     @Column({ type: 'timestamp', nullable: true })
-    confirmationTokenExpire: Date;
+    confirmationTokenExpire: Date | null;
 
     @Column({ type: 'varchar', length: 128, nullable: true })
     passwordRecoveryToken: string;
@@ -29,24 +32,24 @@ export class InternalAccount {
     @Column({ type: 'timestamp', nullable: true })
     passwordRecoveryTokenExpire: Date;
 
-    @PrimaryColumn({ type: 'int' })
+    @Column({ nullable: false })
     accountId: number;
 
-    @Column({ type: 'int', nullable: true })
+    @Column({ nullable: true })
     hashingAlgorithmId: number;
 
-    @Column({ type: 'int', nullable: true })
+    @Column({ nullable: true })
     emailStatusId: number;
 
     @ManyToOne(() => Account, { nullable: false })
     @JoinColumn({ name: 'accountId' })
-    userAccount: Account;
+    account: Account;
 
-    @ManyToOne(() => HashingAlgorithm, { nullable: false })
+    @ManyToOne(() => HashingAlgorithm, { nullable: true })
     @JoinColumn({ name: 'hashingAlgorithmId' })
     hashingAlgorithm: HashingAlgorithm;
 
-    @ManyToOne(() => EmailStatus, { nullable: false })
+    @ManyToOne(() => EmailStatus, { nullable: true })
     @JoinColumn({ name: 'emailStatusId' })
     emailStatus: EmailStatus;
 }
