@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { ArticleTag } from "../../article-tag/entities/article-tag.entity";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Article {
@@ -18,4 +19,11 @@ export class Article {
   @ApiProperty({ example: 'This is the content of the article.', description: 'Content body' })
   @Column({ type: 'longtext' })
   content: string;
+
+  @ApiProperty({ description: 'Image URL of the article thumbnail', example: 'https://example.com/thumbnail.jpg' })
+  @Column({ type: 'longtext' })
+  thumbnail: string;
+
+  @OneToMany(() => ArticleTag, articleTag => articleTag.article)
+  articleTags: ArticleTag[];
 }

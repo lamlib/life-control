@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsNotEmpty, IsString } from "class-validator";
 
 export class CreateArticleDto {
     @ApiProperty({ description: 'Title of article', example: '' })
@@ -16,4 +16,14 @@ export class CreateArticleDto {
     @IsNotEmpty()
     @IsString()
     content: string;
+
+    @ApiProperty({ description: 'Content of article', example: '' })
+    @IsNotEmpty()
+    @IsString()
+    thumbnail: string;
+
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsString({ each: true })
+    listTag: string[];
 }
