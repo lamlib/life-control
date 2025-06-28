@@ -101,7 +101,7 @@ export class AuthService {
             const payload = await this._jwtService.verifyAsync(token, { secret });
             return payload;
         } catch (error) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException('Token không hợp lệ hoặc đã hết hạn!');
         }
     }
 
