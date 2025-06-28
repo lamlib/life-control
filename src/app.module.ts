@@ -18,10 +18,13 @@ import { MailerModule, MailerOptions } from '@nestjs-modules/mailer';
 import { FilesModule } from './modules/files/files.module';
 import { ArticlesModule } from './modules/articles/articles.module';
 import { Article } from './modules/articles/entities/article.entity';
+import { TagsModule } from './modules/tags/tags.module';
+import { ArticleTagModule } from './modules/article-tag/article-tag.module';
+import { Tag } from './modules/tags/entities/tag.entity';
+import { ArticleTag } from './modules/article-tag/entities/article-tag.entity';
 
 @Module({
   imports: [
-    // https://docs.nestjs.com/techniques/configuration
     ConfigModule.forRoot({
       envFilePath: [ `.env.${process.env.NODE_ENV}`, `.env.development` ],
       load: [configuration],
@@ -50,7 +53,21 @@ import { Article } from './modules/articles/entities/article.entity';
         username: configService.get<string>('database.username'),
         password: configService.get<string>('database.password'),
         database: configService.get<string>('database.name'),
-        entities: [Account, Permission, Role, RolePermission, InternalAccount, HashingAlgorithm, EmailStatus, ExternalAccount, ExternalProvider, Token, Article],
+        entities: [
+          Account, 
+          Permission,
+          Role,
+          RolePermission,
+          InternalAccount,
+          HashingAlgorithm,
+          EmailStatus,
+          ExternalAccount,
+          ExternalProvider,
+          Token,
+          Article,
+          Tag,
+          ArticleTag,
+        ],
         synchronize: true,
       }),
       inject: [ConfigService],
@@ -60,6 +77,8 @@ import { Article } from './modules/articles/entities/article.entity';
     MailerModule,
     FilesModule,
     ArticlesModule,
+    TagsModule,
+    ArticleTagModule,
   ],
 })
 export class AppModule {}
