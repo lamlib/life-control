@@ -22,7 +22,15 @@ async function bootstrap() {
     username: configService.get<string>('database.username'),
     password: configService.get<string>('database.password'),
     database: configService.get<string>('database.name'),
-    entities: [Role, Permission, RolePermission, Account, InternalAccount, HashingAlgorithm, EmailStatus],
+    entities: [
+      Role,
+      Permission,
+      RolePermission,
+      Account,
+      InternalAccount,
+      HashingAlgorithm,
+      EmailStatus,
+    ],
     synchronize: false,
   });
 

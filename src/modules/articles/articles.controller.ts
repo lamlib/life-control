@@ -1,8 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Req,
+} from '@nestjs/common';
 import { ArticlesService } from './articles.service';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
 
 @ApiTags('Articles')
 @Controller('api/v1/articles')
@@ -11,11 +21,17 @@ export class ArticlesController {
 
   @Post()
   @ApiOperation({ summary: 'Create an article' })
-  @ApiResponse({ status: 201, description: 'The article has been successfully created.' })
-  create(@Body() createArticleDto: CreateArticleDto) {
-    return this.articlesService.create(createArticleDto);
+  @ApiResponse({
+    status: 201,
+    description: 'The article has been successfully created.',
+  })
+  async create(
+    @Body() createArticleDto: CreateArticleDto,
+    @Req() request: Request,
+  ) {
+    const { accountId } = await request['user'];
+    return this.articlesService.create(createArticleDto, accountId);
   }
-
 
   @Get()
   @ApiOperation({ summary: 'Get all articles' })

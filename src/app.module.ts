@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm'; 
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { Account } from './modules/users/entities/account.entity';
 import { Permission } from './modules/auth/entities/permission.entity';
 import { Role } from './modules/auth/entities/role.entity';
@@ -26,7 +26,7 @@ import { ArticleTag } from './modules/article-tag/entities/article-tag.entity';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: [ `.env.${process.env.NODE_ENV}`, `.env.development` ],
+      envFilePath: [`.env.${process.env.NODE_ENV}`, `.env.development`],
       load: [configuration],
       isGlobal: true,
     }),
@@ -40,21 +40,21 @@ import { ArticleTag } from './modules/article-tag/entities/article-tag.entity';
           auth: {
             user: configService.get<string>('email.username'),
             pass: configService.get<string>('email.password'),
-          }
-        }
-      })
+          },
+        },
+      }),
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService): TypeOrmModuleOptions => ({
-        type: configService.get<string>('database.type') as any,
+        type: configService.get<string>('database.type') as 'mysql', 
         host: configService.get<string>('database.host'),
         port: Number(configService.get<string>('database.port')),
         username: configService.get<string>('database.username'),
         password: configService.get<string>('database.password'),
         database: configService.get<string>('database.name'),
         entities: [
-          Account, 
+          Account,
           Permission,
           Role,
           RolePermission,

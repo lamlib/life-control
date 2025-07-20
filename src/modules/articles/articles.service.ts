@@ -7,6 +7,7 @@ import { Article } from './entities/article.entity';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
 import { ArticleTagService } from '../article-tag/article-tag.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ArticlesService {
@@ -17,27 +18,44 @@ export class ArticlesService {
     private readonly _tagService: TagsService,
 
     private readonly _articleTagService: ArticleTagService,
+
+    private readonly _userService: UsersService,
   ) {}
 
-  async create(createArticleDto: CreateArticleDto): Promise<Article> {
+  /**
+   * Lưu bài viết vào cơ sở dũ liệu
+   * @param createArticleDto
+   * @returns
+   */
+  async create(
+    createArticleDto: CreateArticleDto,
+    accountId: number,
+  ): Promise<Article> {
     const listTag: Tag[] = [];
 
-    for(const rawTag of createArticleDto.listTag) {
+    for (const rawTag of createArticleDto.listTag) {
       let tag = await this._tagService.findOneByName(rawTag);
-      if(!tag) {
-        tag = await this._tagService.create({ 
-          name: rawTag, 
-          description: '' 
+      if (!tag) {
+        tag = await this._tagService.create({
+          name: rawTag,
+          description: '',
         });
       }
       listTag.push(tag);
     }
 
+    const account = await this._userService.findOneAccountById(accountId);
+
     let article: Article = this.articleRepository.create(createArticleDto);
+    article.accountId = accountId;
+    article.authorName = 'test';
     article = await this.articleRepository.save(article);
 
-    for(const tag of listTag) {
-      const exits = await this._articleTagService.findOneByArticleIdAndTagId(article.id, tag.id);
+    for (const tag of listTag) {
+      const exits = await this._articleTagService.findOneByArticleIdAndTagId(
+        article.id,
+        tag.id,
+      );
       if (!exits) {
         await this._articleTagService.create({
           articleId: article.id,
@@ -53,13 +71,14 @@ export class ArticlesService {
       relations: ['articleTags', 'articleTags.tag'],
     });
 
-    return articles.map(article => ({
+    return articles.map((article) => ({
       id: article.id,
       title: article.title,
       description: article.description,
       content: article.content,
       thumbnail: article.thumbnail,
-      tags: article.articleTags.map(at => at.tag?.name).filter(Boolean), // lấy name tag
+      authorName: article.authorName,
+      tags: article.articleTags.map((at) => at.tag?.name).filter(Boolean), // lấy name tag
     }));
   }
 
