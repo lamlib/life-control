@@ -1,6 +1,6 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { ArticleTag } from "../../article-tag/entities/article-tag.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { ApiProperty } from '@nestjs/swagger';
+import { ArticleTag } from '../../article-tag/entities/article-tag.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Article {
@@ -8,22 +8,40 @@ export class Article {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ApiProperty({ example: 'My First Article', description: 'Title of the article' })
+  @ApiProperty({
+    example: 'My First Article',
+    description: 'Title of the article',
+  })
   @Column()
   title: string;
 
-  @ApiProperty({ example: 'This is example of simple article description', description: 'Description of article' })
+  @ApiProperty({
+    example: 'This is example of simple article description',
+    description: 'Description of article',
+  })
   @Column()
   description: string;
 
-  @ApiProperty({ example: 'This is the content of the article.', description: 'Content body' })
+  @ApiProperty({
+    example: 'This is the content of the article.',
+    description: 'Content body',
+  })
   @Column({ type: 'longtext' })
   content: string;
 
-  @ApiProperty({ description: 'Image URL of the article thumbnail', example: 'https://example.com/thumbnail.jpg' })
+  @Column({ nullable: false })
+  accountId: number;
+
+  @Column({ nullable: false })
+  authorName: string;
+
+  @ApiProperty({
+    description: 'Image URL of the article thumbnail',
+    example: 'https://example.com/thumbnail.jpg',
+  })
   @Column({ type: 'longtext' })
   thumbnail: string;
 
-  @OneToMany(() => ArticleTag, articleTag => articleTag.article)
+  @OneToMany(() => ArticleTag, (articleTag) => articleTag.article)
   articleTags: ArticleTag[];
 }

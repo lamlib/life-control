@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -17,157 +21,224 @@ import { Role } from './entities/role.entity';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        @InjectRepository(Token)
-        private readonly _tokenRepository: Repository<Token>,
+  constructor(
+    @InjectRepository(Token)
+    private readonly _tokenRepository: Repository<Token>,
 
-        @InjectRepository(Role)
-        private readonly _roleRepository: Repository<Role>,
+    @InjectRepository(Role)
+    private readonly _roleRepository: Repository<Role>,
 
-        private readonly _usersService: UsersService,
+    private readonly _usersService: UsersService,
 
-        private readonly _configService: ConfigService,
+    private readonly _configService: ConfigService,
 
-        private readonly _jwtService: JwtService,
+    private readonly _jwtService: JwtService,
 
-        private readonly _mailerService: MailerService,
-    ) {}
+    private readonly _mailerService: MailerService,
+  ) {}
 
-    private async _createAccessToken(payload: Record<string, any>): Promise<{ accessToken: string, accessTokenExpire: Date }> {
-        const accessToken = await this._jwtService.signAsync(payload, { expiresIn: this._configService.get<string>('jwt.accessTokenExpire.string') });
-        const accessTokenExpire = new Date(Date.now() + parseInt(this._configService.get<string>('jwt.accessTokenExpire.number') as string));
-        return {
-            accessToken,
-            accessTokenExpire,
-        };
+  private async _createAccessToken(
+    payload: Record<string, any>,
+  ): Promise<{ accessToken: string; accessTokenExpire: Date }> {
+    const accessToken = await this._jwtService.signAsync(payload, {
+      expiresIn: this._configService.get<string>(
+        'jwt.accessTokenExpire.string',
+      ),
+    });
+    const accessTokenExpire = new Date(
+      Date.now() +
+        parseInt(
+          this._configService.get<string>(
+            'jwt.accessTokenExpire.number',
+          ) as string,
+        ),
+    );
+    return {
+      accessToken,
+      accessTokenExpire,
+    };
+  }
+
+  private async _createRefreshToken(
+    payload: Record<string, any>,
+  ): Promise<{ refreshToken: string; refreshTokenExpire: Date }> {
+    const refreshToken = await this._jwtService.signAsync(payload, {
+      expiresIn: this._configService.get<string>(
+        'jwt.refreshTokenExpire.string',
+      ),
+    });
+    const refreshTokenExpire = new Date(
+      Date.now() +
+        parseInt(
+          this._configService.get<string>(
+            'jwt.refreshTokenExpire.number',
+          ) as string,
+        ),
+    );
+    return {
+      refreshToken,
+      refreshTokenExpire,
+    };
+  }
+
+  private async _createConfirmationToken(
+    payload: Record<string, any>,
+  ): Promise<{ confirmationToken: string; confirmationTokenExpire: Date }> {
+    const confirmationToken = await this._jwtService.signAsync(payload, {
+      expiresIn: this._configService.get<string>(
+        'jwt.confirmationTokenExpire.string',
+      ),
+    });
+    const confirmationTokenExpire = new Date(
+      Date.now() +
+        parseInt(
+          this._configService.get<string>(
+            'jwt.confirmationTokenExpire.number',
+          ) as string,
+        ),
+    );
+    return {
+      confirmationToken,
+      confirmationTokenExpire,
+    };
+  }
+
+  private async _createToken(internalAccount: InternalAccount): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    accessTokenExpire: Date;
+  }> {
+    const { accountId } = internalAccount;
+    const { refreshToken, refreshTokenExpire } = await this._createRefreshToken(
+      { accountId },
+    );
+    const { accessToken, accessTokenExpire } = await this._createAccessToken({
+      accountId,
+    });
+
+    const token = new Token();
+    token.accountId = accountId;
+    token.refreshToken = refreshToken;
+    token.refreshTokenExpire = refreshTokenExpire;
+
+    this._tokenRepository.save(token);
+
+    return {
+      accessToken,
+      refreshToken,
+      accessTokenExpire,
+    };
+  }
+
+  private _deleteToken(token: Token) {
+    if (token.refreshTokenExpire.getTime() < Date.now()) {
+      this._tokenRepository.remove(token);
+      return true;
+    }
+    return false;
+  }
+
+  async extractTokenFromHeader(request: Request): Promise<string> {
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    if (type !== 'Bearer') {
+      throw new UnauthorizedException();
+    }
+    return token;
+  }
+
+  async parsePayload(token: string): Promise<any> {
+    try {
+      const secret = this._configService.get<string>('jwt.secret');
+      const payload = await this._jwtService.verifyAsync(token, { secret });
+      return payload;
+    } catch (error) {
+      throw new UnauthorizedException('Token không hợp lệ hoặc đã hết hạn!');
+    }
+  }
+
+  async register(registerDTO: RegisterDTO): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    accessTokenExpire: Date;
+  }> {
+    const internalAccount = await this._usersService.createInternalAccount(
+      registerDTO,
+      RoleEnum.GUEST,
+    );
+    return await this._createToken(internalAccount);
+  }
+
+  async login(loginDTO: LoginDto): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    accessTokenExpire: Date;
+  }> {
+    const internalAccount =
+      await this._usersService.checkInternalAccount(loginDTO);
+    return await this._createToken(internalAccount);
+  }
+
+  async refresh(refreshDTO: RefreshDTO): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    accessTokenExpire: Date;
+  }> {
+    const { refreshToken: r } = refreshDTO;
+
+    const token = await this._tokenRepository.findOneBy({ refreshToken: r });
+
+    if (!token) {
+      throw new UnauthorizedException('Refresh token không hợp lệ!');
     }
 
-    private async _createRefreshToken(payload: Record<string, any>): Promise<{ refreshToken: string, refreshTokenExpire: Date }> {
-        const refreshToken = await this._jwtService.signAsync(payload, { expiresIn: this._configService.get<string>('jwt.refreshTokenExpire.string'), });
-        const refreshTokenExpire = new Date(Date.now() + parseInt(this._configService.get<string>('jwt.refreshTokenExpire.number') as string));
-        return {
-            refreshToken,
-            refreshTokenExpire,
-        };
+    if (this._deleteToken(token)) {
+      throw new UnauthorizedException('Refresh token không hợp lệ!');
     }
 
-    private async _createConfirmationToken(payload: Record<string, any>): Promise<{ confirmationToken: string, confirmationTokenExpire: Date }> {
-        const confirmationToken = await this._jwtService.signAsync(payload, { expiresIn: this._configService.get<string>('jwt.confirmationTokenExpire.string') });
-        const confirmationTokenExpire = new Date(Date.now() + parseInt(this._configService.get<string>('jwt.confirmationTokenExpire.number') as string));
-        return {
-            confirmationToken,
-            confirmationTokenExpire,
-        };
+    const { accountId } = token;
+    const { refreshToken } = await this._createRefreshToken({ accountId });
+    const { accessToken, accessTokenExpire } = await this._createAccessToken({
+      accountId,
+    });
+
+    token.refreshToken = refreshToken;
+    this._tokenRepository.save(token);
+
+    return {
+      accessToken,
+      refreshToken,
+      accessTokenExpire,
+    };
+  }
+
+  async profile(request: Request) {
+    return {
+      user: (request as any)['user'],
+    };
+  }
+
+  async sendEmailConfirm(request: Request): Promise<void> {
+    const { accountId } = (request as any)['user'];
+    const internalAccount =
+      await this._usersService.findOneInternalAccountByAccountId(accountId);
+    if (internalAccount.emailStatusId == EmailStatusEnum.VERIFIED) {
+      throw new ConflictException('Địa chỉ email đã verify!');
     }
-
-    private async _createToken(internalAccount: InternalAccount): Promise<{accessToken: string; refreshToken: string; accessTokenExpire: Date}>  {
-        const { accountId } = internalAccount;
-        const { refreshToken, refreshTokenExpire } = await this._createRefreshToken({ accountId });
-        const { accessToken, accessTokenExpire } = await this._createAccessToken({ accountId });
-        
-        const token = new Token();
-        token.accountId = accountId;
-        token.refreshToken = refreshToken;
-        token.refreshTokenExpire = refreshTokenExpire;
-
-        this._tokenRepository.save(token);
-
-        return {
-            accessToken,
-            refreshToken,
-            accessTokenExpire,
-        };
+    if (internalAccount.emailStatusId == EmailStatusEnum.PENDING_VERIFICATION) {
+      throw new ConflictException('Địa chỉ email đang xác thực!');
     }
-
-    private _deleteToken(token: Token) {
-        if(token.refreshTokenExpire.getTime() < Date.now()) {
-            this._tokenRepository.remove(token);
-            return true;
-        }
-        return false;
-    }
-
-    async extractTokenFromHeader(request: Request): Promise<string> {
-        const [type, token] = request.headers.authorization?.split(' ') ?? [];
-        if (type !== 'Bearer') {
-            throw new UnauthorizedException();
-        }
-        return token;
-    }
-
-    async parsePayload(token: string): Promise<any> {
-        try {
-            const secret = this._configService.get<string>('jwt.secret');
-            const payload = await this._jwtService.verifyAsync(token, { secret });
-            return payload;
-        } catch (error) {
-            throw new UnauthorizedException('Token không hợp lệ hoặc đã hết hạn!');
-        }
-    }
-
-    async register(registerDTO: RegisterDTO): Promise<{accessToken: string; refreshToken: string; accessTokenExpire: Date}> {
-        const internalAccount = await this._usersService.createInternalAccount(registerDTO, RoleEnum.GUEST);
-        return await this._createToken(internalAccount);
-    }
-
-    async login(loginDTO: LoginDto): Promise<{accessToken: string; refreshToken: string; accessTokenExpire: Date}> {
-        const internalAccount = await this._usersService.checkInternalAccount(loginDTO);
-        return await this._createToken(internalAccount);
-    }
-
-    async refresh(refreshDTO: RefreshDTO): Promise<{accessToken: string; refreshToken: string; accessTokenExpire: Date}> {
-        const { refreshToken: r } = refreshDTO;
-
-        const token = await this._tokenRepository.findOneBy({ refreshToken: r });
-
-        if(!token) {
-            throw new UnauthorizedException('Refresh token không hợp lệ!');
-        }
-
-        if(this._deleteToken(token)) {
-            throw new UnauthorizedException('Refresh token không hợp lệ!');
-        }
-
-        const { accountId } = token;
-        const { refreshToken } = await this._createRefreshToken({ accountId });
-        const { accessToken, accessTokenExpire } = await this._createAccessToken({ accountId });
-
-        token.refreshToken = refreshToken;
-        this._tokenRepository.save(token);
-
-        return {
-            accessToken,
-            refreshToken,
-            accessTokenExpire,
-        }
-    }
-
-    async profile(request: Request) {
-        return {
-            user: (request as any)['user'],
-        }
-    }
-
-    async sendEmailConfirm(request: Request): Promise<void> {
-        const { accountId } = (request as any)['user'];
-        const internalAccount = await this._usersService.findOneInternalAccountByAccountId(accountId);
-        if(internalAccount.emailStatusId == EmailStatusEnum.VERIFIED) {
-            throw new ConflictException('Địa chỉ email đã verify!');
-        }
-        if(internalAccount.emailStatusId == EmailStatusEnum.PENDING_VERIFICATION) {
-            throw new ConflictException('Địa chỉ email đang xác thực!');
-        }
-        const { confirmationToken, confirmationTokenExpire } = await this._createConfirmationToken({ accountId });
-        internalAccount.confirmationToken = confirmationToken;
-        internalAccount.confirmationTokenExpire = confirmationTokenExpire;
-        this._mailerService.sendMail({
-            to: internalAccount.emailAddress,
-            from: {
-                name: 'LamLib Support Team',
-                address: 'lamlib2023@gmail.com' // Sử dụng domain chính thức thay vì gmail
-            },
-            subject: 'Verify Your Account - Action Required',
-            html: `
+    const { confirmationToken, confirmationTokenExpire } =
+      await this._createConfirmationToken({ accountId });
+    internalAccount.confirmationToken = confirmationToken;
+    internalAccount.confirmationTokenExpire = confirmationTokenExpire;
+    this._mailerService.sendMail({
+      to: internalAccount.emailAddress,
+      from: {
+        name: 'LamLib Support Team',
+        address: 'lamlib2023@gmail.com', // Sử dụng domain chính thức thay vì gmail
+      },
+      subject: 'Verify Your Account - Action Required',
+      html: `
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
@@ -275,7 +346,7 @@ export class AuthService {
                 </body>
                 </html>
             `,
-            text: `
+      text: `
                 Account Verification Required
                 
                 Dear User,
@@ -294,31 +365,37 @@ export class AuthService {
                 ---
                 This is an automated message. Please do not reply to this email.
                 © 2024 LamLib. All rights reserved.
-            `
-            })
-        await this._usersService.saveInternalAccount(internalAccount);
-    }
+            `,
+    });
+    await this._usersService.saveInternalAccount(internalAccount);
+  }
 
-    async verifyEmailConfirm(confirmationToken: string): Promise<void> {
-        const { accountId } = await this.parsePayload(confirmationToken);
-        const internalAccount = await this._usersService.findOneInternalAccountByAccountId(accountId);
-        if(internalAccount.emailStatusId == EmailStatusEnum.VERIFIED) {
-            throw new ConflictException('Email đã được xác nhận trước đó!');
-        }
-        if(internalAccount.emailStatusId == EmailStatusEnum.UNVERIFIED) {
-            throw new ConflictException('Email phải ở trạng thái đang chờ xác nhận trước khi xác nhận!');
-        }
-        if(
-            internalAccount.confirmationToken !== confirmationToken || 
-            !internalAccount.confirmationTokenExpire || 
-            internalAccount.confirmationTokenExpire.getTime() < Date.now()) {
-            throw new UnauthorizedException('Xác nhận email không hợp lệ!');
-        }
-        internalAccount.emailStatusId = EmailStatusEnum.VERIFIED;
-        internalAccount.confirmationToken = null;
-        internalAccount.confirmationTokenExpire = null;
-        const account = await this._usersService.findOneAccountById(accountId);
-        const role = await this._roleRepository.findOneByOrFail({id: RoleEnum.CLIENT});
-        account.roleId = role.id;
+  async verifyEmailConfirm(confirmationToken: string): Promise<void> {
+    const { accountId } = await this.parsePayload(confirmationToken);
+    const internalAccount =
+      await this._usersService.findOneInternalAccountByAccountId(accountId);
+    if (internalAccount.emailStatusId == EmailStatusEnum.VERIFIED) {
+      throw new ConflictException('Email đã được xác nhận trước đó!');
     }
+    if (internalAccount.emailStatusId == EmailStatusEnum.UNVERIFIED) {
+      throw new ConflictException(
+        'Email phải ở trạng thái đang chờ xác nhận trước khi xác nhận!',
+      );
+    }
+    if (
+      internalAccount.confirmationToken !== confirmationToken ||
+      !internalAccount.confirmationTokenExpire ||
+      internalAccount.confirmationTokenExpire.getTime() < Date.now()
+    ) {
+      throw new UnauthorizedException('Xác nhận email không hợp lệ!');
+    }
+    internalAccount.emailStatusId = EmailStatusEnum.VERIFIED;
+    internalAccount.confirmationToken = null;
+    internalAccount.confirmationTokenExpire = null;
+    const account = await this._usersService.findOneAccountById(accountId);
+    const role = await this._roleRepository.findOneByOrFail({
+      id: RoleEnum.CLIENT,
+    });
+    account.roleId = role.id;
+  }
 }

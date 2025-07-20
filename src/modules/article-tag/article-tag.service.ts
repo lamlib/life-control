@@ -12,7 +12,8 @@ export class ArticleTagService {
   ) {}
 
   create(createArticleTagDto: CreateArticleTagDto): Promise<ArticleTag> {
-    const articleTag: ArticleTag = this.articleTagRepository.create(createArticleTagDto);
+    const articleTag: ArticleTag =
+      this.articleTagRepository.create(createArticleTagDto);
     return this.articleTagRepository.save(articleTag);
   }
 
@@ -21,14 +22,17 @@ export class ArticleTagService {
   }
 
   findAllByArticleId(articleId: number) {
-    return this.articleTagRepository.find({ where: { articleId } });  
+    return this.articleTagRepository.find({ where: { articleId } });
   }
 
   findAllByTagId(tagId: number) {
     return this.articleTagRepository.find({ where: { tagId } });
   }
 
-  findOneByArticleIdAndTagId(articleId: number, tagId: number): Promise<ArticleTag | null> {
+  findOneByArticleIdAndTagId(
+    articleId: number,
+    tagId: number,
+  ): Promise<ArticleTag | null> {
     return this.articleTagRepository.findOneBy({ articleId, tagId });
   }
 

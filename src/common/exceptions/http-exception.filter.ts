@@ -1,4 +1,10 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { Response } from 'express';
 
 // https://blog.stackademic.com/standardizing-api-responses-in-nestjs-with-interceptors-and-exception-filters-cf65efd27d04
@@ -15,10 +21,13 @@ export class HttpExceptionFilter<T> implements ExceptionFilter {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
-      message = typeof exceptionResponse === 'string' ? exceptionResponse : (exception as any).message || exception.message;
+      message =
+        typeof exceptionResponse === 'string'
+          ? exceptionResponse
+          : (exception as any).message || exception.message;
 
       if (Array.isArray(message)) {
-        message = message[0]
+        message = message[0];
       }
     }
 
@@ -26,6 +35,6 @@ export class HttpExceptionFilter<T> implements ExceptionFilter {
       data: null,
       status,
       message,
-    })
+    });
   }
 }

@@ -24,7 +24,7 @@ import { AuthGuard } from './auth.guard';
         global: true,
         secret: configService.get<string>('jwt.secret'),
       }),
-    })
+    }),
   ],
   providers: [
     AuthService,
@@ -34,6 +34,6 @@ import { AuthGuard } from './auth.guard';
     },
   ],
   controllers: [AuthController],
-  exports: [ AuthService ]
+  exports: [AuthService],
 })
 export class AuthModule {}

@@ -17,8 +17,14 @@ export class ArticleTagController {
   }
 
   @Get(':articleId/:tagId')
-  findOne(@Param('articleId') articleId: string, @Param('tagId') tagId: string) {
-    return this.articleTagService.findOneByArticleIdAndTagId(+articleId, +tagId);
+  findOne(
+    @Param('articleId') articleId: string,
+    @Param('tagId') tagId: string,
+  ) {
+    return this.articleTagService.findOneByArticleIdAndTagId(
+      +articleId,
+      +tagId,
+    );
   }
 
   @Delete(':articleId/:tagId')
