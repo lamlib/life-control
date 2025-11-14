@@ -30,7 +30,7 @@ export class ArticlesController {
     @Req() request: Request,
   ) {
     const { accountId } = await request['user'];
-    return this.articlesService.create(createArticleDto, accountId);
+    return await this.articlesService.create(createArticleDto, accountId);
   }
 
   @Get()

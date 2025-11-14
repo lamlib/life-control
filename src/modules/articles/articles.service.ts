@@ -48,7 +48,7 @@ export class ArticlesService {
 
     let article: Article = this.articleRepository.create(createArticleDto);
     article.accountId = accountId;
-    article.authorName = 'test';
+    article.authorName = account.username ?? 'Không có tên';
     article = await this.articleRepository.save(article);
 
     for (const tag of listTag) {
