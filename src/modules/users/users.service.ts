@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -54,38 +55,30 @@ export class UsersService {
     accountId: number,
   ): Promise<InternalAccount> {
     try {
-      return await this._internalAccountRepository.findOneByOrFail({
-        accountId,
-      });
+      return await this._internalAccountRepository.findOneByOrFail({ accountId });
     } catch (error) {
       throw new NotFoundException('Tài khoản không tồn tại!');
     }
   }
 
-  async saveInternalAccount(
-    internalAccount: InternalAccount,
-  ): Promise<InternalAccount> {
+  async saveInternalAccount(internalAccount: InternalAccount): Promise<InternalAccount> {
     return await this._internalAccountRepository.save(internalAccount);
   }
 
-  async createInternalAccount(
-    registerDTO: RegisterDTO,
-    userRoleId: number,
-  ): Promise<InternalAccount> {
+  async createInternalAccount(registerDTO: RegisterDTO, userRoleId: number): Promise<InternalAccount> {
     const { emailAddress, password } = registerDTO;
     const userLoginExisted = await this._internalAccountRepository.findOneBy({
       emailAddress,
     });
 
     if (userLoginExisted) {
-      throw new Error(
-        `User with email ${emailAddress} is existed, please using other email!`,
-      );
+      throw new ConflictException(`User with email ${emailAddress} is already existed, please using other email!`)
     }
 
     // Tạo tài khoản
     let newAcc = new Account();
     newAcc.roleId = userRoleId;
+    newAcc.username = emailAddress.split('@')[0];
     try {
       newAcc = await this._accountRepository.save(newAcc);
     } catch (error) {
