@@ -29,7 +29,7 @@ export class Account {
   @Column({ type: 'date', nullable: true })
   dateOfBirth: Date;
 
-  @Column({type: 'varchar', length: 50, nullable: false})
+  @Column({ type: 'varchar', length: 50, nullable: false })
   username: string;
 
   @Column({ type: 'int', nullable: false })

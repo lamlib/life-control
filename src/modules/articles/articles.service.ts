@@ -14,11 +14,8 @@ export class ArticlesService {
   constructor(
     @InjectRepository(Article)
     private readonly articleRepository: Repository<Article>,
-
     private readonly _tagService: TagsService,
-
     private readonly _articleTagService: ArticleTagService,
-
     private readonly _userService: UsersService,
   ) {}
 
@@ -49,6 +46,8 @@ export class ArticlesService {
     let article: Article = this.articleRepository.create(createArticleDto);
     article.accountId = accountId;
     article.authorName = account.username ?? 'Không có tên';
+    article.publishedAt = new Date();
+    article.publishedBy = accountId;
     article = await this.articleRepository.save(article);
 
     for (const tag of listTag) {
@@ -78,11 +77,14 @@ export class ArticlesService {
       content: article.content,
       thumbnail: article.thumbnail,
       authorName: article.authorName,
+      publishedAt: article.publishedAt,
+      viewCount: article.viewCount,
       tags: article.articleTags.map((at) => at.tag?.name).filter(Boolean), // lấy name tag
     }));
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
+    await this.articleRepository.increment({ id }, 'viewCount', 1);
     return this.articleRepository.findOneBy({ id });
   }
 
