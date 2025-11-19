@@ -47,7 +47,7 @@ import { ArticleTag } from './modules/article-tag/entities/article-tag.entity';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService): TypeOrmModuleOptions => ({
-        type: configService.get<string>('database.type') as any, 
+        type: configService.get<string>('database.type') as any,
         host: configService.get<string>('database.host'),
         port: Number(configService.get<string>('database.port')),
         username: configService.get<string>('database.username'),

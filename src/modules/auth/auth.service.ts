@@ -112,7 +112,7 @@ export class AuthService {
     const { refreshToken, refreshTokenExpire } = await this._createRefreshToken(
       { accountId },
     );
-    
+
     const { accessToken, accessTokenExpire } = await this._createAccessToken({
       accountId,
     });
@@ -162,8 +162,17 @@ export class AuthService {
    * - Quyền mặc định là khách
    * - Trả về token ngay
    */
-  async register(registerDTO: RegisterDTO): Promise<{ accessToken: string; refreshToken: string; accessTokenExpire: Date;}> {
-    const internalAccount = await this._usersService.createInternalAccount(registerDTO, RoleEnum.GUEST);
+  async register(
+    registerDTO: RegisterDTO,
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    accessTokenExpire: Date;
+  }> {
+    const internalAccount = await this._usersService.createInternalAccount(
+      registerDTO,
+      RoleEnum.GUEST,
+    );
     return await this._createToken(internalAccount);
   }
 
@@ -172,7 +181,8 @@ export class AuthService {
     refreshToken: string;
     accessTokenExpire: Date;
   }> {
-    const internalAccount = await this._usersService.checkInternalAccount(loginDTO);
+    const internalAccount =
+      await this._usersService.checkInternalAccount(loginDTO);
     return await this._createToken(internalAccount);
   }
 

@@ -44,4 +44,31 @@ export class Article {
 
   @OneToMany(() => ArticleTag, (articleTag) => articleTag.article)
   articleTags: ArticleTag[];
+
+  @Column({ type: 'bigint', default: 0 })
+  viewCount: string;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  updatedAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  publishedAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  deletedAt: Date;
+
+  @Column({ nullable: true })
+  createdBy: number;
+
+  @Column({ nullable: true })
+  deletedBy: number;
+
+  @Column({ nullable: true })
+  updatedBy: number;
+
+  @Column({ nullable: true })
+  publishedBy: number;
 }
