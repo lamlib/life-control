@@ -462,6 +462,9 @@ export class AuthGuard implements CanActivate {
 Passport là thư viện xác thực Node.js phổ biến nhất, được cộng đồng nổi tiếng và được sử dụng thành công trong nhiều ứng dụng sản xuất. Thật đơn giản khi tích hợp thư viện này với một ứng dụng tổ bằng cách sử dụng mô -đun @NestJS/Passport. Để tìm hiểu làm thế nào bạn có thể tích hợp hộ chiếu với NestJS, hãy xem chương này.
 
 
+## Triển khai đăng nhập google thủ công
+
+
 
 
 

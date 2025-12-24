@@ -1,20 +1,31 @@
-import { Column, Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { ExternalProvider } from './external-provider.entity';
-import { Account } from './account.entity';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class ExternalAccount {
-  @PrimaryColumn({ type: 'int' })
-  externalProviderId: number;
+  @PrimaryGeneratedColumn()
+  id: number
+
+  @ApiProperty({ description: 'FK trỏ tới offical account của system này' })
+  @Column()
+  accountId: number;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
-  externalProviderToken: string;
+  externalProviderId: string;
 
-  @ManyToOne(() => Account, { nullable: false })
-  @JoinColumn({ name: 'accountId' })
-  account: Account;
+  @ApiProperty({ description: 'Mã định danh người dùng do provider cung cấp' })
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  externalAccountId: string;
 
-  @ManyToOne(() => ExternalProvider, { nullable: false })
-  @JoinColumn({ name: 'externalProviderId' })
-  externalProvider: ExternalProvider;
+  @ApiProperty({ description: 'Địa chỉ email người dùng do provider cung cấp' })
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  externalAccountEmailAdress: string;
+
+  @ApiProperty({ description: 'Tên tài khoản người dùng do provider cung cấp (chỉ lấy về, tạm thời để đấy và không làm gì cả)' })
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  externalAccountName: string;
+
+  @ApiProperty({ description: 'Link ảnh avatar người dùng do provider cung cấp (chỉ lấy về, tạm thời để đấy và không làm gì cả)' })
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  externalAccountAvatar: string;
 }
