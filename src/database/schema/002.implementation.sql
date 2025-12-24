@@ -1,0 +1,306 @@
+-- The Schemas of Identity and Access Management 
+-- ==============================================
+-- ============== Identity Group ================
+-- ==============================================
+-- Bảng chính lưu ID và thông tin cơ bản.
+CREATE TABLE IF NOT EXISTS lm_accounts();
+-- Cột 1: Account ID - Mã định danh duy nhất của tài khoản (khóa chính, tự động tăng)
+-- Cột 2: Username - Tên đăng nhập (không được trống, duy nhất, độ dài tối đa 50 ký tự)
+-- Cột 3: Email - Địa chỉ email (không được trống, duy nhất, định dạng email hợp lệ)
+-- Cột 4: Phone Number - Số điện thoại (tùy chọn, độ dài tối đa 20 ký tự)
+-- Cột 5: Full Name - Họ và tên đầy đủ (không được trống, độ dài tối đa 200 ký tự)
+-- Cột 6: Display Name - Tên hiển thị (tùy chọn, độ dài tối đa 100 ký tự)
+-- Cột 7: Avatar URL - Đường dẫn ảnh đại diện (tùy chọn, độ dài tối đa 500 ký tự)
+-- Cột 8: Account Status - Trạng thái tài khoản (không được trống, giá trị: ACTIVE, LOCKED, SUSPENDED, DELETED)
+-- Cột 9: Email Verified - Email đã xác thực chưa (không được trống, giá trị true/false, mặc định false)
+-- Cột 10: Phone Verified - Số điện thoại đã xác thực chưa (không được trống, giá trị true/false, mặc định là false)
+-- Cột 11: Create At - Thời điểm tạo tài khoản (không được trống, mặc định là thời gian hiện tại)
+-- Cột 12: Update At - Thời điểm cập nhập cuối cùng (không được trống, tự động cập nhập)
+-- Cột 13: Last Login At - Lần đăng nhập gần nhất (tùy chọn)
+-- Cột 14: Deleted At - Thời điểm xóa mềm(tùy chọn, null nếu chưa xóa)
+-- Lưu các thông tin mở rộng (Metadata).
+CREATE TABLE IF NOT EXISTS lm_account_attributes ();
+-- Cột 1: Attribute ID - Mã định danh duy nhất (khóa chính, tự động tăng)
+-- Cột 2: Account ID - Mã tài khoản (không được trống, khóa ngoại tham chiếu `lm_accounts`)
+-- Cột 3: Attribute Key - Tên thuộc tính (không được trống, độ dài tối đa 100 ký tự, ví dụ: "department", "employee_id")
+-- Cột 4: Attribute Value - Giá trị thuộc tính (tùy chọn, kiểu text, có thể lưu JSON)
+-- Cột 5: Data Type - Kiểu dữ liệu (không được trống, giá trị: STRING, NUMBER, BOOLEAN, JSON, DATE)
+-- Cột 6: Is Public - Thuộc tính công khai hay riêng tư (không được trống, giá trị true/false, mặc định false)
+-- Cột 7: Create At - Thời điểm tạo tài khoản (không được trống, mặc định là thời gian hiện tại)
+-- Cột 8: Update At - Thời điểm cập nhập cuối cùng (không được trống, tự động cập nhập)
+-- Ràng buộc: Cặp (Account ID, Attribute Key) phải duy nhất
+-- Theo dõi lịch sử thay đổi trạng thái tài khoản.
+CREATE TABLE IF NOT EXISTS lm_account_status_history();
+-- Cột 1: History ID: Mã định danh duy nhất(khóa chính, tự động tăng)
+-- Cột 2: Account ID: Mã tài khoản(không được trống, khóa ngoại tham chiếu `lm_accounts`)
+-- Cột 3: Previous Status: Trạng thái trước đó (tùy chọn, giá trị: ACTIVE, LOCKED, SUSPENDED, DELETED)
+-- Cột 4: New Status: Trạng thái mới (không được trống, giá trị: ACTIVE, LOCKED, SUSPENDED, DELETED)
+-- Cột 5: Reason: Lý do thay đổi (tùy chọn, kiểu text)
+-- Cột 6: Changed By: Người thực hiện thay đổi (tùy chọn, khóa ngoại tham chiếu `lm_accounts` hoặc tên hệ thống)
+-- Cột 7: Changed At: Thời điểm thay đổi (không được trống, mặc định thời gian hiện tại)
+-- Cột 8: IP Address: Địa chỉ IP thực hiện thay đổi(tùy chọn, độ dài tối đa 45 ký tự)
+-- Cột 9: Metadata: Thông tin bổ sung(tùy chọn, kiểu JSON)
+-- Cấu hình các nguồn đăng nhập (Google, Facebook, LDAP, Identity Providers, ...).
+CREATE TABLE IF NOT EXISTS lm_account_providers();
+-- Cột 1: Provider ID: Mã định danh duy nhất(khóa chính, tự động tăng)
+-- Cột 2: Provider Name: Tên nhà cung cấp(không được để trống, duy nhất, độ dài tối đa 100 ký tự, ví dụ "google", "facebook", "ldap")
+-- Cột 3: Provider Type: Loại provider (không được trống, giá trị: OAUTH2, OIDC, SAML, LDAP, INTERNAL)
+-- Cột 4: Is Enabled: Trạng thái kích hoạt(không được trống, giá trị true/false, mặc định true)
+-- Cột 5: Display Name: Tên hiển thị trên giao diện(không được trống, độ dài tối đa 200 ký tự)
+-- Cột 6: Icon URL: Đường dẫn Icon (tùy chọn, độ dài tối đa 500 ký tự)
+-- Cột 7: Client ID: Client ID của provider(tùy chọn, độ dài tối đa 500 ký tự)
+-- Cột 8: Client Secret: Client Secret (tùy chọn, mã hóa, độ dài tối đa 1000 ký tự)
+-- Cột 9: Authorization Endpoint: URL endpoint xác thực (tùy chọn, độ dài tối đa 1000 ký tự)
+-- Cột 10: Token Endpoint: URL endpoint lấy token (tùy chọn, độ dài tối đa 1000 ký tự)
+-- Cột 11: User Info Endpoint: URL endpoint lấy thông tin user (tùy chọn, độ dài tối đa 1000 ký tự)
+-- Cột 12: Scope: Phạm vi yêu cầu (tùy chọn, độ dài tối đa 500 ký tự, ví dụ: "openid profile email")
+-- Cột 13: Config Json: Cấu hình bổ sung(tùy chọn, kiểu JSON)
+-- Cột 14: Create At: Thời điểm tạo (không được trống, mặc định thời gian hiện tại)
+-- Cột 15: Update At: Thời điểm cập nhập (không được trống, tự động cập nhập) 
+-- ===============================================
+-- ======= Authentication & Security Group =======
+-- ===============================================
+-- Lưu mật khẩu (hash) cho đăng nhập truyền thống.
+CREATE TABLE IF NOT EXISTS lm_login_data_internal ();
+-- Cột 1: Login ID: Mã định danh duy nhất(khóa chính, tự động tăng)
+-- Cột 2: Account ID: Mã tài khoản(không được để trống, duy nhất, khóa ngoại tham chiếu `lm_accounts`)
+-- Cột 3: Password Hash: Mật khẩu đã mã hóa(không được trống, độ dài tối đa 500 ký tự, sử dụng bcrypt/argon2)
+-- Cột 4: Password Salt: Muối để mã hóa(tùy chọn, độ dài tối đa 100 ký tự)
+-- Cột 5: Hash Algorithm: Thuật toán mã hóa(không được trống, độ dài tối đa 50 ký tự, ví dụ: "bcrypt", "argon2")
+-- Cột 6: Must Change Password: Bắt buộc đổi mật khẩu lần đăng nhập sau(không được để trống, giá trị true/false, mặc định false)
+-- Cột 7: Password Expires At: Thời điểm hết hạn mật khẩu (tùy chọn)
+-- Cột 8: Failed Login Attempts: Số lần đăng nhập thất bại liên tiếp (không được trống, số nguyên, mặc định 0)
+-- Cột 9: Locked Until: Khóa đến thời điểm(tùy chọn, null nếu không bị khóa)
+-- Cột 10: Last Password Change: Lần đổi mật khẩu cuối (tùy chọn)
+-- Cột 11: Created At: Thời điểm tạo(không được trống, mặc định thời gian hiện tại)
+-- Cột 12: Updated At: Thời điểm cập nhập(không được trống, tự động cập nhập)
+-- Lưu liên kết ID từ các Provider (Social ID).
+CREATE TABLE IF NOT EXISTS lm_login_data_external ();
+-- Cột 1: External Login ID: Mã định danh duy nhất(khóa chính, tự động tăng)
+-- Cột 2: Account ID: Mã tài khoản(không được trống, khóa ngoại tham chiếu `lm_accounts`)
+-- Cột 3: Provider ID: Mã provider (không được trống, khóa ngoại tham chiếu `lm_account_providers`)
+-- Cột 4: External User ID: ID người dùng từ provider (không được trống, độ dài tối đa 500 ký tự)
+-- Cột 5: External Username: Tên đăng nhập từ provider (tùy chọn, độ dài tối đa 200 ký tự)
+-- Cột 6: External Email: Email từ provider (tùy chọn, độ dài tối đa 200 ký tự)
+-- Cột 7: Access Token: Token truy cập(tùy chọn, mã hóa, kiểu text)
+-- Cột 8: Token Expires At: Thời điểm hết hạn token (tùy chọn)
+-- Cột 9: Profile Data: Dữ liệu profile từ provider (tùy chọn, kiểu JSON)
+-- Cột 10: Is Primary: Liên kết chính(không được trống, giá trị true/false, mặc định false)
+-- Cột 11: Linked At: Thời điểm liên kết(không được trống, mặc định thời gian hiện tại)
+-- Cột 12: Updated At: Thời điểm cập nhập(không được trống, tự động cập nhập)
+-- Ràng buộc: Cặp(Provider ID,  External User ID) phải duy nhất
+-- Quản lý phiên đăng nhập, thiết bị và token.
+CREATE TABLE IF NOT EXISTS lm_sessions ();
+-- Cột 1: Session ID: Mã định danh phiên (khóa chính, độ dài tối đa 500 ký tự, UUID hoặc JWT ID)
+-- Cột 2: Account ID: Mã tài khoản (không được trống, khóa ngoại tham chiếu `lm_accounts`)
+-- Cột 3: Session Token: Token phiên (không được trống, duy nhất, mã hóa, độ dài tối đa 1000 ký tự)
+-- Cột 4: Refresh Token: Token làm mới (tùy chọn, duy nhất, mã hóa, độ dài tối đa 1000 ký tự)
+-- Cột 5: Device ID: Mã thiết bị (tùy chọn, độ dài tối đa 200 ký tự)
+-- Cột 6: Device Type: Loại thiết bị(tùy chọn, độ dài tối đa 50 ký tự, ví dụ: "web", "mobile", "desktop")
+-- Cột 7: Device Name: Tên thiết bị(tùy chọn, độ dài tối đa 200 ký tự)
+-- Cột 8: User Agent: Chuỗi User Agent (tùy chọn, kiểu text)
+-- Cột 9: IP Adress: Địa chỉ IP(tùy chọn, độ dài tối đa 45 ký tự)
+-- Cột 10: Location: Vị trí địa lý(tùy chọn, độ dài tối đa 200 ký tự)
+-- Cột 11: Is Active: Phiên còn hoạt động (không được trống, giá trị true/false, mặc định true)
+-- Cột 12: Create At: Thời điểm tạo phiên (không được trống, mặc định thời gian hiện tại)
+-- Cột 13: Expires At: Thời điểm hết hạn (không được trống)
+-- Cột 14: Last Activity At: Hoạt động cuối cùng(không được trống, tự động cập nhập)
+-- Cột 15: Revoked At: Thời điểm thu hồi phiên (tùy chọn)
+-- Cột 16: Revoked Reason: Lý do thu hồi (tùy chọn, độ dài tối đa 500 ký tự)
+-- Lưu cấu hình xác thực 2 lớp (2FA).
+CREATE TABLE IF NOT EXISTS lm_otp_credentials();
+-- Cột 1: OTP ID: Mã định danh duy nhất(khóa chính, tự động tăng)
+-- Cột 2: Account ID: Mã tài khoản(không được trống, khóa ngoại tham chiếu `lm_accounts`)
+-- Cột 3: OTP Type: Loại OTP (không được trống, giá trị: TOTP, SMS, EMAIL, BACKUP_CODES)
+-- Cột 4: Secret Key: Khóa bí mật (không được trống, mã hóa, độ dài tối đa 500 ký tự)
+-- Cột 5: Is Enabled: Đã kích hoạt (không được trống, giá trị true/false, mặc định false)
+-- Cột 6: Is Verified: Đã xác minh (không được trống, giá trị true/false, mặc định false)
+-- Cột 7: Backup Codes: Mã dự phòng (tùy chọn, mã hóa, kiểu JSON - mảng các mã)
+-- Cột 8: Phone number: Số điện thoại nhận OTP(tùy chọn, độ dài tối đa 20 ký tự)
+-- Cột 9: Email: Email nhận OTP (tùy chọn, độ dài tối đa 200 ký tự)
+-- Cột 10: Last used at: Lần sử dụng cuối(tùy chọn)
+-- Cột 11: Created at: Thời điểm tạo(không được để trống, mặc định thời gian hiện tại)
+-- Cột 12: Updated at: Thời điểm cập nhập(Không được trống, tự động cập nhập)
+-- Ràng buộc: Cặp (Account ID, OTP Type) phải duy nhất
+-- Ngăn chặn việc đặt lại mật khẩu cũ.
+CREATE TABLE IF NOT EXISTS lm_password_history();
+-- Cột 1: History ID: Mã định danh duy nhất (khóa chính, tự động tăng)
+-- Cột 2: Account ID: Mã tài khoản (không được trống, khóa ngoại tham chiếu `lm_accounts`)
+-- Cột 3: Password Hash: Mật khẩu cũ đã mã hóa (không được trống, độ dài tối đa 500 ký tự)
+-- Cột 4: Hash Algorithm: Thuật toán mã hóa (không được trống, độ dài tối đa 50 ký tự)
+-- Cột 5: Changed At: Thời điểm đổi mật khẩu (không được trống, mặc định thời gian hiện tại)
+-- Cột 6: Changed By: Người thực hiện (tùy chọn, giá trị: "user", "admin", "system")
+-- Cột 7: IP Address: Địa chỉ IP khi đổi(tùy chọn, độ dài tối đa 45 ký tự)
+-- ===============================================
+-- ========= Authorization & RBAC Group ==========
+-- ===============================================
+-- Danh sách các vai trò.
+CREATE TABLE IF NOT EXISTS lm_role();
+-- Cột 1: Role ID: Mã định danh duy nhất (khóa chính, tự động tăng)
+-- Cột 2: Role Name: Tên vai trò (không được trống, duy nhất, độ dài tối đa 100 ký tự, ví dụ: "admin", "user", "manager")
+-- Cột 3: Role Code: Mã vai trò (không được trống, duy nhất, độ dài tối đa 50 ký tự, ví dụ: "ROLE_ADMIN")
+-- Cột 4: Description: Mô tả vai trò(tùy chọn, kiểu text)
+-- Cột 5: Is System Role: Vai trò hệ thống(không được trống, giá trị true/false, mặc định là false - không cho phép xóa nếu true)
+-- Cột 6: Is Active: Trạng thái kích hoạt(không được trống, giá trị true/false, mặc định true)
+-- Cột 7: Priority: Mức độ ưu tiên(tùy chọn, số nguyên, mặc định 0 - số càng cao càng ưu tiên)
+-- Cột 8: Create At: Thời điểm tạo(không được trống, mặc định thời gian hiện tại)
+-- Cột 9: Update At: Thời điểm cập nhập(không được trống, tự động cập nhập)
+-- Danh sách các hành động cụ thể.
+CREATE TABLE IF NOT EXISTS lm_permission();
+-- Cột 1: Permission ID: Mã định danh duy nhất(khóa chính, tự động tăng)
+-- Cột 2: Permission Name: Tên quyền (không được trống, duy nhất, độ dài tối đa 100 ký tự, ví dụ: "users.create", "posts.delete")
+-- Cột 3: Permission Code: Mã quyền (không được trống, duy nhất, độ dài tối đa 100 ký tự)
+-- Cột 4: Resource: Tài nguyên áp dụng (không được trống, độ dài tối đa 50 ký tự, ví dụ: "users", "posts")
+-- Cột 5: Action: Hành động (không được trống, độ dài tối đa 50 ký tự, ví dụ: "create", "read", "update", "delete")
+-- Cột 6: Description: Mô tả quyền(tùy chọn, kiểu text)
+-- Cột 7: Is System Permission: Quyền hệ thống(không được trống, giá trị true/false, mặc định false)
+-- Cột 8: Create At: Thời điểm tạo(không được trống, mặc định thời gian hiện tại)
+-- Cột 9: Update At: Thời điểm cập nhập(không được trống, tự động cập nhập)
+-- Ánh xạ quyền vào vai trò.
+CREATE TABLE IF NOT EXISTS lm_role_permissions();
+-- Cột 1: Role Permission ID: Mã định danh duy nhất(khóa chính, tự động tăng)
+-- Cột 2: Role ID: Mã vai trò(không được trống, khóa ngoại tham chiếu `lm_role`)
+-- Cột 3: Permission ID: Mã quyền (không được trống, khóa ngoại tham chiếu `lm_permission`)
+-- Cột 4: Granted At: Thời điểm cấp quyền(không được trống, mặc định thời gian hiện tại)
+-- Cột 5: Granted By: Người cấp quyền (tùy chọn, khóa ngoại tham chiếu `lm_accounts`)
+-- Ràng buộc: Cặp(Role ID, Permission ID) phải duy nhất
+-- Cấu trúc tổ chức/phòng ban/nhóm.
+CREATE TABLE IF NOT EXISTS lm_groups();
+-- Cột 1: Group ID: Mã định danh duy nhất, (khóa chính, tự động tăng)
+-- Cột 2: Group Name: Tên nhóm(không được trống, độ dài tối đa 200 ký tự)
+-- Cột 3: Group Code: Mã nhóm(không được trống, duy nhất, độ dài tối đa 100 ký tự)
+-- Cột 4: Parent Group ID: Nhóm cha (tùy chọn, khóa ngoại tham chiếu chính bảng này - tạo cấu trúc cây)
+-- Cột 5: Group Type: Loại nhóm (tùy chọn, độ dài tối đa 50 ký tự, ví dụ "department", "team", "project")
+-- Cột 6: Description: Mô tả nhóm (tùy chọn, kiểu text)
+-- Cột 7: Is Active: Trạng thái hoạt động(không được trống, giá trị true/false, mặc định là true)
+-- Cột 8: Path: Đường dẫn phân cấp(tùy chọn, độ dài tối đa 1000 ký tự, ví dụ: "company/it/development")
+-- Cột 9: Level: Cấp độ trong cây(tùy chọn, số nguyên, mặc định 0)
+-- Cột 10: Create At: Thời điêm tạo(không được trống, mặc định thời gian hiện tại)
+-- Cột 11: Update At: Thời điểm cập nhập(không được trống, tự động cập nhập)
+-- Xếp người dùng vào nhóm.
+CREATE TABLE IF NOT EXISTS lm_account_groups();
+-- Cột 1: Account Group ID: Mã định danh duy nhất (khóa chính, tự động tăng)
+-- Cột 2: Account ID: Mã tài khoản(không được trống, khóa ngoại tham chiếu `lm_accounts`)
+-- Cột 3: Group ID: Mã nhóm (không được trống, khóa ngoại tham chiếu `lm_group`)
+-- Cột 4: Is Manager: Là quản lý nhóm (không được trống, giá trị true/false, mặc định là false)
+-- Cột 5: Joined At: Thời điểm tham gia (không được trống, mặc định thời gian hiện tại)
+-- Cột 6: Assigned By: Người gán (tùy chọn, khóa ngoại để tham chiếu `lm_accounts`)
+-- Ràng buộc: Cặp (Account ID, Group ID) phải duy nhất
+-- Gán quyền nhanh cho cả nhóm
+CREATE TABLE IF NOT EXISTS lm_group_roles();
+-- Cột 1: Group Role ID: Mã định danh duy nhất (khóa chính, tự động tăng)
+-- Cột 2: Group ID: Mã nhóm (không được trống, khóa ngoại tham chiếu `lm_groups`)
+-- Cột 3: Role ID: Mã vai trò (không được trống, khóa ngoại tham chiếu `lm_role`)
+-- Cột 4: Scope: Phạm vi áp dụng (tùy chọn, độ dài tối đa 200 ký tự, ví dụ: "project:123")
+-- Cột 5: Granted At: Thời điểm cấp(không được trống, mặc định thời gian hiện tại)
+-- Cột 6: Granted By: Người cấp (tùy chọn, khóa ngoại tham chiếu `lm_accounts`)
+-- Cột 7: Expires At: Thời điểm hết hạn (tùy chọn)
+-- Ràng buộc: Bộ ba(Group ID, Role ID, Scope) phải duy nhất
+-- Gán quyền trực tiếp cho cá nhân
+CREATE TABLE IF NOT EXISTS lm_account_roles();
+-- Cột 1: Account Role ID: Mã định danh duy nhất(khóa chính, tự động tăng)
+-- Cột 2: Account ID: Mã tài khoản(không được trống, khóa ngoại tham chiếu `lm_accounts`)
+-- Cột 3: Role ID: Mã vai trò(không được trống, khóa ngoại tham chiếu `lm_role`)
+-- Cột 4: Scope: Phạm vi áp dụng(tùy chọn, độ dài tối đa 200 ký tự)
+-- Cột 5: Granted At: Thời điểm cấp(không được trống, mặc định thời gian hiện tại)
+-- Cột 6: Granted By: Người cấp (tùy chọn, khóa ngoại tham chiếu `lm_accounts`)
+-- Cột 7: Expires At: Thời điểm hết hạn (tùy chọn)
+-- Ràng buộc: Bộ ba(Account ID, Role ID, Scope) phải duy nhất
+-- ===============================================
+-- ============= Client & OIDC Group =============
+-- ===============================================
+-- Lưu thông tin về các ứng dụng client đăng ký với hệ thống IAM
+CREATE TABLE IF NOT EXISTS lm_clients();
+-- Cột 1: Client ID: Mã client (khóa chính, duy nhất, độ dài tối đa 200 ký tự, UUID)
+-- Cột 2: Client Secret: Bí mật client (tùy chọn, mã hóa, độ dài tối đa 500 ký tự)
+-- Cột 3: Client Name: Tên ứng dụng (không được trống, độ dài tối đa 200 ký tự)
+-- Cột 4: Description: Mô tả ứng dụng (tùy chọn, kiểu text)
+-- Cột 5: Client Type: Loại client (không được trống, giá trị: CONFIDENTIAL, PUBLIC)
+-- Cột 6: Grant Types: Các phương thức cấp token(không được trống, kiểu JSON array, ví dụ: ["authorization_code", "refresh_toke"])
+-- Cột 7: Is Enabled: Trạng thái kích hoạt(không được trống, giá trị true/false, mặc định true)
+-- Cột 8: Is Consent Required: Yêu cầu xác nhận đồng ý (không được trống, giá trị true/false, mặc định true)
+-- Cột 9: Access Token Life Time: Thời gian sống access token (không được trống, số nguyên - giây, mặc định 3600)
+-- Cột 10: Refresh Token Life Time: Thời gian sống refresh token(không được trống, số nguyên - giây, mặc định 2592000)
+-- Cột 11: ID Token Life Time: Thời gian sống ID token(không được trống, số nguyên - giây, mặc định 3600)
+-- Cột 12: Logo URI: Đường dẫn logo (tùy chọn, độ dài tối đa 500 ký tự)
+-- Cột 13: Client URI: Trang chủ ứng dụng(tùy chọn, độ dài tối đa 500 ký tự)
+-- Cột 14: Policy URI: Chính sách bảo mật (tùy chọn, độ dài tối đa 500 ký tự)
+-- Cột 15: TOS URL: Điều khoản sử dụng(tùy chọn, độ dài tối đa 500 ký tự)
+-- Cột 16: Owner ID: Chủ sở hữu(tùy chọn, khóa ngoại tham chiếu lm_accounts)
+-- Cột 17: Created At: Thời điểm tạo(không được trống, mặc định thời gian hiện tại)
+-- Cột 18: Updated At: Thời điểm cập nhập(không được trống, tự động cập nhập)
+-- Xác định phạm vi (scope) mà client có thể yêu cầu khi xin token.
+CREATE TABLE IF NOT EXISTS lm_client_scopes();
+-- Cột 1: Client Scope ID: Mã định danh duy nhất(khóa chính, tự động tăng)
+-- Cột 2: Client ID: Mã client (không được trống, khóa ngoại tham chiếu `lm_client`)
+-- Cột 3: Scope Name: Tên scope(không được trống, độ dài tối đa 100 ký tự, ví dụ "openid", "profile", "email")
+-- Cột 4: Is Default: Scope mặc định (không được trống, giá trị true/false, mặc định false)
+-- Cột 5: Is Required: Scope bắt buộc (không được trống, giá trị true/false, mặc định false)
+-- Cột 6: Desciption: Mô tả scope(tùy chọn, kiểu text)
+-- Cột 7: Create At: Thời điêm tạo (không được trống, mặc định thời gian hiện tại)
+-- Ràng buộc: Cặp(Client ID, Scope Name) phải duy nhất
+-- Lưu danh sách các URI mà client được phép redirect sau khi xác thực
+CREATE TABLE IF NOT EXISTS lm_client_redirect_uris();
+-- Cột 1: Redirect URI ID: Mã định danh duy nhất(khóa chính, tự động tăng)
+-- Cột 2: Client ID: Mã Client (không được trống, khóa ngoại tham chiếu `lm_clients`)
+-- Cột 3: Redirect URI: Đỉa chỉ Redirect(không được trống, độ dài tối đa 1000 ký tự)
+-- Cột 4: Is Default: URI mặc định (không được trống, giá trị true/false, mặc định false)
+-- Cột 5: Create At: Thời điểm tạo(không được trống, mặc định thời gian hiện tại)
+-- Ràng buộc: Cặp (Client ID, Redirect URI) phải duy nhất
+-- Định nghĩa các ánh xạ dữ liệu người dùng (claims/attributes) vào token ID hoặc Access Token.
+CREATE TABLE IF NOT EXISTS lm_protocol_mappers();
+-- Cột 1: Mapper ID: Mã định danh duy nhất (khóa chính, tự động tăng)
+-- Cột 2: Client ID: Mã client (tùy chọn, khóa ngoại tham chiếu `lm_clients`-null nếu áp dụng toàn cục)
+-- Cột 3: Mapper Name: Tên Mapper (không được trống, độ dài tối đa 200 ký tự)
+-- Cột 4: Mapper Type: Loại Mapper (không được trống, giá trị: USER_ATTRIBUTE, USER_PROPERTY, ROLE, GROUP, HARDCODED)
+-- Cột 5: Protocol: Giao thức (không được trống, giá trị: OIDC, SAML)
+-- Cột 6: Token Claim Name: Tên claim trong token (không được trống, độ dài tối đa 200 ký tự, ví dụ "email", "roles")
+-- Cột 7: Claim Json Type: Kiểu dữ liệu JSON(không được để trống, giá trị: STRING, LONG, INT, BOOLEAN, JSON)
+-- Cột 8: User Atttribute: Thuộc tính người dùng(tùy chọn, độ dài tối đa 200 ký tự)
+-- Cột 9: Multivalued: Đa giá trị(không được trống, giá trị true/fasle, mặc định false)
+-- Cột 10: Add To ID Token: Thêm vào ID Token (không được trống, giá trị true/false, mặc định false)
+-- Cột 11: Add To Access Token: Thêm vào Access Token (không được trống, giá trị true/fasle, mặc định false)
+-- Cột 12: Add to User Info: Thêm vào User Info (không được trống, giá trị true/false, mặc định false)
+-- Cột 13: Config Json: Cấu hình bổ sung (tùy chọn, kiểu JSON)
+-- Cột 14: Created At: Thời điểm tạo (không được trống, mặc định thời gian hiện tại)
+-- Cột 15: Update At: Thời điểm cập nhập (không được trống, tự động cập nhập)
+-- ===============================================
+-- =============== Auditing Group ================
+-- ===============================================
+-- Ghi lại mọi hành động nhạy cảm (Ai, làm gì, khi nào, ở đâu).
+CREATE TABLE IF NOT EXISTS lm_audit_logs();
+-- Cột 1: Log ID: Mã định danh duy nhất(khóa chính, tự động tăng hoặc UUID)
+-- Cột 2: Account ID: Mã tài khoản thực hiện (tùy chọn, khóa ngoại tham chiếu tới `lm_accounts` - null nếu là hệ thống)
+-- Cột 3: Action: Hành động thực hiện (không được trống, độ dài tối đa 100 ký tự, ví dụ: "LOGIN", "LOGOUT", "CREATE_USER", "DELETE_ROLE")
+-- Cột 4: Action Category: Danh mục hành động (không được trống, giá trị: AUTHENTICATION, AUTHORIZATION, DATA_ACCESS, SYSTEM, SECURIRY)
+-- Cột 5: Resource Type: Loại tài nguyên (tùy chọn, độ dài tối đa 100 ký tự, ví dụ: "account", "role", "permission")
+-- Cột 6: Resource ID: Mã tài nguyên (tùy chọn, độ dài tối đa 200 ký tự)
+-- Cột 7: Resource Name: Tên tài nguyên (tùy chọn, độ dài tối đa 500 ký tự)
+-- Cột 8: Severity: Mức độ nghiêm trọng (Không được trống, giá trị: INFO, WARNING, ERROR, CRITICAL)
+-- Cột 9: Status: Trạng thái (không được trống, giá trị: SUCCESS, FAILURE, PENDING)
+-- Cột 10: IP Address: Địa chỉ IP (tùy chọn, độ dài tối đa 45 ký tự)
+-- Cột 11: User Agent: Chuỗi User Agent (tùy chọn, kiểu text)
+-- Cột 12: Session ID: Mã phiên (tùy chọn, độ dài tối đa 500 ký tự)
+-- Cột 13: Request ID: Mã request (tùy chọn, độ dài tối đa 200 ký tự)
+-- Cột 14: Changes Before: Dữ liệu trước thay đổi(tùy chọn, kiểu JSON)
+-- Cột 15: Changes After: Dữ liệu sau thay đổi(tùy chọn, kiểu JSON)
+-- Cột 16: Error Message: Thông báo lỗi(tùy chọn, kiểu text)
+-- Cột 17: Metadata: Thông tin bổ sung(tùy chọn, kiểu JSON)
+-- Cột 18: Create At: Thời điểm xảy ra (không được trống, mặc định thời gian hiện tại)
+-- Chú ý: Bảng này không có cột Update At vì log không được sửa đổi sau khi tạo
+-- ==================================== NOTE =====================================
+-- 1. Khóa chính: Tất cả bảng đều có khóa chính duy nhất
+-- 2. Timestamp: Hầu hết bảng có `created_at` và `updated_at` để theo dõi
+-- 3. Soft Delete: Sử dụng `deleted_at` thay vì xóa vật lý
+-- 4. Mã hóa: Các trường nhạy cảm (password, secret, token) phải được mã hóa
+-- 5. Index: Nên tạo index cho các cột thường xuyên query(Account ID, Email, Username, Client ID, Session ID)
+-- 6. Kiểu dữ liệu linh hoạt: JSON cho metadata và cấu hình mở rộng
+-- 7. Ràng buộc: Các ràng buộc duy nhất và khóa ngoại để đảm bảo tính toàn vẹn dữ liệu
+-- Đôi lời muốn nói: 
+-- Schema trên được tham khảo các chuẩn thiết kế IAM phổ biến (Oauth 2.0, Open ID Connect, SAML)
+-- Bestpractice về database schema design
+-- Experience system design of authentication/authorization
+-- Các pattern phổ biến tham khảo trong ngành là:
+-- RBAC, Multi Factor Authentication, Social Login, Session Management,
+-- Các nguyên tắc thiết kế database:
+-- Normalization, Foreign key relationships, Soft delete pattern, Audit trail

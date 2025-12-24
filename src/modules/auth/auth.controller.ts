@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpRedirectResponse, Param, Patch, Post, Query, Redirect, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
@@ -10,7 +10,7 @@ import { RefreshDTO } from './dto/refresh.dto';
 @ApiTags('Xác thực')
 @Controller('api/v1/auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) { }
 
   @ApiOperation({ summary: 'Đăng ký mới tài khoản' })
   @Public()
@@ -62,5 +62,21 @@ export class AuthController {
     this.authService.verifyEmailConfirm(confirmationToken);
     const message = 'Xác nhận email thành công!';
     return { message };
+  }
+
+  @ApiOperation({ summary: 'Đăng nhập bằng Oauth' })
+  @Get(':provider')
+  @Redirect()
+  async providerLogin(@Param('provider') provider: string): Promise<HttpRedirectResponse> {
+    const httpRedirectResponse: HttpRedirectResponse = await this.authService.buildHttpRedirectResProviderLogin(provider);
+    return httpRedirectResponse;
+  }
+
+  @ApiOperation({ summary: 'Xử lý authorization code do Oauth trả về sau khi Oauth ủy quyền' })
+  @Get("callback/:provider")
+  @Redirect()
+  async providerCallback(@Param('provider') provider: string, @Query('code') code: string): Promise<HttpRedirectResponse> {
+    const httpRedirectResponse: HttpRedirectResponse = await this.authService.buildHttpRedirectResProviderCallback(provider, code);
+    return httpRedirectResponse;
   }
 }

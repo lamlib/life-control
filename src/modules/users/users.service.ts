@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InternalAccount } from './entities/internal-account.entity';
+import { ExternalAccount } from './entities/external-account.entity';
 import { Repository } from 'typeorm';
 import { Account } from './entities/account.entity';
 import * as bcrypt from 'bcrypt';
@@ -14,6 +15,9 @@ import { LoginDto } from '../auth/dto/login.dto';
 import { Request } from 'express';
 import { EmailStatusEnum } from '../../common/enums/email-status.enum';
 import { EmailStatus } from './entities/email-status.entity';
+import { ExternalProvider } from './entities/external-provider.entity';
+import { RoleEnum } from 'src/common/enums/role.enum';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -24,9 +28,15 @@ export class UsersService {
     @InjectRepository(InternalAccount)
     private readonly _internalAccountRepository: Repository<InternalAccount>,
 
+    @InjectRepository(ExternalAccount)
+    private readonly _externalAccountRespository: Repository<ExternalAccount>,
+
     @InjectRepository(EmailStatus)
     private readonly _emailStatusRepository: Repository<EmailStatus>,
-  ) {}
+
+    @InjectRepository(ExternalProvider)
+    private readonly _externalProviderRepository: Repository<ExternalProvider>,
+  ) { }
 
   async checkInternalAccount(loginDTO: LoginDto): Promise<InternalAccount> {
     const { emailAddress, password } = loginDTO;
@@ -118,5 +128,57 @@ export class UsersService {
       throw new NotFoundException();
     }
     return account;
+  }
+
+  async findOneExternalProviderByName(name: string) {
+    const provider = await this._externalProviderRepository.findOneBy({ name: name });
+    if (!provider) {
+      throw new NotFoundException();
+    }
+    return provider;
+  }
+
+  _generateUsername(emailAddress: string) {
+    const randomSuffix = randomBytes(3).toString('hex');
+    return `${emailAddress.split('@')[0]}_${randomSuffix}`;
+  }
+
+  async checkExternalAccount(externalProviderId: string, rawExaccount: {
+    id: any;
+    email: any;
+    name: any;
+    avatar: any;
+  }) {
+    let externalAccount = await this._externalAccountRespository.findOneBy({
+      externalAccountId: rawExaccount.id,
+      externalProviderId
+    });
+
+    if (!externalAccount) {
+      let account = await this._accountRepository.findOneBy({
+        emailAddress: rawExaccount.email
+      });
+      if (!account) {
+        account = new Account();
+        account.roleId = RoleEnum.CLIENT;
+        account.emailAddress = rawExaccount.email;
+        account.username = this._generateUsername(rawExaccount.email);
+        try {
+          account = await this._accountRepository.save(account);
+        } catch (error) {
+          throw error;
+        }
+      }
+
+      externalAccount = await this._externalAccountRespository.save({
+        accountId: account.id,
+        externalAccountAvatar: rawExaccount.avatar,
+        externalAccountEmailAdress: rawExaccount.email,
+        externalAccountId: rawExaccount.id,
+        externalAccountName: rawExaccount.name,
+        externalProviderId: externalProviderId,
+      });
+    }
+    return externalAccount;
   }
 }
