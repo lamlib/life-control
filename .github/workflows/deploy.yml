@@ -57,6 +57,7 @@ jobs:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_ENV: ${{ secrets.DEPLOY_ENV }}
         run: |
           mkdir -p ~/.ssh
           echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
@@ -75,6 +76,7 @@ jobs:
             rm -rf backend && \
             mkdir backend && \
             tar -xzf backend.tar.gz -C backend --strip-components=1 && \
+            echo "$DEPLOY_ENV" > ./backend/.env.production && \
             pm2 reload backend-app || pm2 start npm --name backend-app -i max -- run start:prod
           '
 
