@@ -75,7 +75,7 @@ jobs:
             rm -rf backend && \
             mkdir backend && \
             tar -xzf backend.tar.gz -C backend --strip-components=1 && \
-            echo "$DEPLOY_ENV" > .env.production && \
+            echo $DEPLOY_ENV > .env.production && \
             pm2 reload backend-app || pm2 start npm --name backend-app -i max -- run start:prod
           '
 
