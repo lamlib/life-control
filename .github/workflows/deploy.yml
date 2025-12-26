@@ -78,7 +78,8 @@ jobs:
             tar -xzf backend.tar.gz -C backend --strip-components=1 && \
             echo "$DEPLOY_ENV" > /var/www/backend/.env.production && \
             cd /var/www/backend && \
-            pm2 restart backend-app || pm2 start npm --name backend-app -- run start:prod
+            export NODE_ENV=production && \
+            pm2 reload backend-app || pm2 start npm --name backend-app -i max -- run start:prod
           '
 
       - name: Notify deployment
