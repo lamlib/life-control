@@ -7,6 +7,8 @@ import { InternalAccount } from './entities/internal-account.entity';
 import { ConfigService } from '@nestjs/config';
 import { EmailStatus } from './entities/email-status.entity';
 import { Article } from '../articles/entities/article.entity';
+import { ExternalAccount } from './entities/external-account.entity';
+import { ExternalProvider } from './entities/external-provider.entity';
 
 @Module({
   imports: [
@@ -15,10 +17,12 @@ import { Article } from '../articles/entities/article.entity';
       Permission,
       InternalAccount,
       EmailStatus,
+      ExternalAccount,
+      ExternalProvider,
     ]),
   ],
   providers: [UsersService, ConfigService],
   exports: [UsersService],
   controllers: [],
 })
-export class UsersModule {}
+export class UsersModule { }
