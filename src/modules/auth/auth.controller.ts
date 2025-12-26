@@ -64,19 +64,19 @@ export class AuthController {
     return { message };
   }
 
-  @ApiOperation({ summary: 'Đăng nhập bằng Oauth' })
-  @Get(':provider')
-  @Redirect()
-  async providerLogin(@Param('provider') provider: string): Promise<HttpRedirectResponse> {
-    const httpRedirectResponse: HttpRedirectResponse = await this.authService.buildHttpRedirectResProviderLogin(provider);
-    return httpRedirectResponse;
-  }
+  // @ApiOperation({ summary: 'Đăng nhập bằng Oauth' })
+  // @Get(':provider')
+  // @Redirect()
+  // async providerLogin(@Param('provider') provider: string): Promise<HttpRedirectResponse> {
+  //   const httpRedirectResponse: HttpRedirectResponse = await this.authService.buildHttpRedirectResProviderLogin(provider);
+  //   return httpRedirectResponse;
+  // }
 
-  @ApiOperation({ summary: 'Xử lý authorization code do Oauth trả về sau khi Oauth ủy quyền' })
-  @Get("callback/:provider")
-  @Redirect()
-  async providerCallback(@Param('provider') provider: string, @Query('code') code: string): Promise<HttpRedirectResponse> {
-    const httpRedirectResponse: HttpRedirectResponse = await this.authService.buildHttpRedirectResProviderCallback(provider, code);
-    return httpRedirectResponse;
-  }
+  // @ApiOperation({ summary: 'Xử lý authorization code do Oauth trả về sau khi Oauth ủy quyền' })
+  // @Get("callback/:provider")
+  // @Redirect()
+  // async providerCallback(@Param('provider') provider: string, @Query('code') code: string): Promise<HttpRedirectResponse> {
+  //   const httpRedirectResponse: HttpRedirectResponse = await this.authService.buildHttpRedirectResProviderCallback(provider, code);
+  //   return httpRedirectResponse;
+  // }
 }

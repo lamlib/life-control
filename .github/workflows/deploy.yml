@@ -1,3 +1,87 @@
-name: Triển khai dự án blog
-on: [push]
-jobs: 
+name: Triển khai dự án NestJs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.19.6"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Package artifact (dist + node_modules)
+        run: |
+          mkdir -p backend-artifact
+          cp -r dist backend-artifact/
+          cp -r node_modules backend-artifact/
+          cp package.json backend-artifact/
+          cp package-lock.json backend-artifact/
+          tar -czf backend.tar.gz backend-artifact
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: backend.tar.gz
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-build
+          path: .
+
+      - name: Deploy to server
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
+
+          # Backup code cũ
+          ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST 'mkdir -p /var/www/backups && cp -r /var/www/backend /var/www/backups/backend_$(date +%s) 2>/dev/null || true'
+
+          # Upload artifact mới
+          scp -i ~/.ssh/deploy_key backend.tar.gz $DEPLOY_USER@$DEPLOY_HOST:/var/www/
+
+          # Giải nén và reload bằng PM2
+          ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST '
+            cd /var/www && \
+            rm -rf backend && \
+            mkdir backend && \
+            tar -xzf backend.tar.gz -C backend --strip-components=1 && \
+            pm2 reload backend-app || pm2 start --name backend-app npm -- run start:prod
+          '
+
+      - name: Notify deployment
+        if: success()
+        run: echo "Deploy thành công!"
+
+      - name: Notify failure
+        if: failure()
+        run: echo "Deploy thất bại!"

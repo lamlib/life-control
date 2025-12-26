@@ -8,7 +8,4 @@ export class HashingAlgorithm {
 
   @Column({ type: 'varchar', length: 20, unique: true })
   name: string;
-
-  @OneToMany(() => InternalAccount, (userLogin) => userLogin.hashingAlgorithm)
-  internalAccounts: InternalAccount[];
 }

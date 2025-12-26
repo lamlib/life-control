@@ -411,90 +411,90 @@ export class AuthService {
     account.roleId = role.id;
   }
 
-  async buildHttpRedirectResProviderLogin(providerName: string): Promise<HttpRedirectResponse> {
-    const provider = await this._usersService.findOneExternalProviderByName(providerName);
-    const params = new URLSearchParams({
-      client_id: provider.clientId,
-      redirect_uri: provider.redirectUri,
-      response_type: 'code',
-      scope: provider.scope,
-      state: provider.name, //TODO: Tìm hiểu tại sao lại là provider name
-    }).toString();
+  // async buildHttpRedirectResProviderLogin(providerName: string): Promise<HttpRedirectResponse> {
+  //   const provider = await this._usersService.findOneExternalProviderByName(providerName);
+  //   const params = new URLSearchParams({
+  //     client_id: provider.clientId,
+  //     redirect_uri: provider.redirectUri,
+  //     response_type: 'code',
+  //     scope: provider.scope,
+  //     state: provider.name, //TODO: Tìm hiểu tại sao lại là provider name
+  //   }).toString();
 
-    const httpRedirectResponse: HttpRedirectResponse = {
-      url: `${provider.authUrl}?${params}`,
-      statusCode: HttpStatus.FOUND
-    };
+  //   const httpRedirectResponse: HttpRedirectResponse = {
+  //     url: `${provider.authUrl}?${params}`,
+  //     statusCode: HttpStatus.FOUND
+  //   };
 
-    return httpRedirectResponse;
-  }
+  //   return httpRedirectResponse;
+  // }
 
-  _normalizeExternalUser(providerName: string, data: any) {
-    switch (providerName) {
-      case 'google':
-        return {
-          id: data.id,
-          email: data.email,
-          name: data.name,
-          avatar: data.picture,
-        };
-      case 'github':
-        return {
-          id: data.id,
-          email: data.email,
-          name: data.name,
-          avatar: data.picture,
-        };
-      default:
-        throw new BadRequestException();
-    }
-  }
+  // _normalizeExternalUser(providerName: string, data: any) {
+  //   switch (providerName) {
+  //     case 'google':
+  //       return {
+  //         id: data.id,
+  //         email: data.email,
+  //         name: data.name,
+  //         avatar: data.picture,
+  //       };
+  //     case 'github':
+  //       return {
+  //         id: data.id,
+  //         email: data.email,
+  //         name: data.name,
+  //         avatar: data.picture,
+  //       };
+  //     default:
+  //       throw new BadRequestException();
+  //   }
+  // }
 
-  async buildHttpRedirectResProviderCallback(providerName: string, authorizationCode: string): Promise<HttpRedirectResponse> {
-    const provider = await this._usersService.findOneExternalProviderByName(providerName);
+  // async buildHttpRedirectResProviderCallback(providerName: string, authorizationCode: string): Promise<HttpRedirectResponse> {
+  //   const provider = await this._usersService.findOneExternalProviderByName(providerName);
 
-    // Prase 1: Exchange token
-    const rawToken = await fetch(provider.tokenUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({
-        client_id: provider.clientId,
-        client_secret: provider.clientSecret,
-        code: authorizationCode,
-        redirect_uri: provider.redirectUri, //TODO: Need to understand this field
-        grant_type: 'authorization_code',
-      })
-    });
+  //   // Prase 1: Exchange token
+  //   const rawToken = await fetch(provider.tokenUrl, {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/x-www-form-urlencoded',
+  //     },
+  //     body: new URLSearchParams({
+  //       client_id: provider.clientId,
+  //       client_secret: provider.clientSecret,
+  //       code: authorizationCode,
+  //       redirect_uri: provider.redirectUri, //TODO: Need to understand this field
+  //       grant_type: 'authorization_code',
+  //     })
+  //   });
 
-    if (!rawToken.ok) {
-      throw new UnauthorizedException(`Fetch access token from OAuth faild with status ${rawToken.}`);
-    }
+  //   if (!rawToken.ok) {
+  //     throw new UnauthorizedException(`Fetch access token from OAuth faild with status ${rawToken.}`);
+  //   }
 
-    const token = await rawToken.json();
+  //   const token = await rawToken.json();
 
-    // Prase 2: Get user info
-    const rawExternalUser = await fetch(provider.userInfoUrl, {
-      headers: {
-        Authorization: `Bearer ${token.access_token}`,
-      },
-    });
+  //   // Prase 2: Get user info
+  //   const rawExternalUser = await fetch(provider.userInfoUrl, {
+  //     headers: {
+  //       Authorization: `Bearer ${token.access_token}`,
+  //     },
+  //   });
 
-    const externalUser = rawExternalUser.json();
+  //   const externalUser = rawExternalUser.json();
 
-    // Prase 3: Normalize user
-    const safeExternalUser = this._normalizeExternalUser(providerName, externalUser);
+  //   // Prase 3: Normalize user
+  //   const safeExternalUser = this._normalizeExternalUser(providerName, externalUser);
 
-    // Prase 4: Find / create internal user
-    const savedExternalAccount = await this._usersService.checkExternalAccount(String(provider.id), safeExternalUser)
-    const tokens = await this._createToken(savedExternalAccount);
+  //   // Prase 4: Find / create internal user
+  //   const savedExternalAccount = await this._usersService.checkExternalAccount(String(provider.id), safeExternalUser)
+  //   const tokens = await this._createToken(savedExternalAccount);
 
-    // Prase 5: Issue session or jwt
-    const httpRedirectResponse: HttpRedirectResponse = {
-      statusCode: 302,
-      url: '?' + tokens
-    }
-    return httpRedirectResponse;
-  }
+  //   // Prase 5: Issue session or jwt
+  //   const httpRedirectResponse: HttpRedirectResponse = {
+  //     statusCode: 302,
+  //     url: '?' + tokens
+  //   }
+  //   return httpRedirectResponse;
+  // }
 }
