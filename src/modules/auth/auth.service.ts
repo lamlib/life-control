@@ -166,18 +166,12 @@ export class AuthService {
    * - Quyền mặc định là khách
    * - Trả về token ngay
    */
-  async register(
-    registerDTO: RegisterDTO,
-  ): Promise<{
-    accessToken: string;
-    refreshToken: string;
-    accessTokenExpire: Date;
-  }> {
+  async register(registerDTO: RegisterDTO){
     const internalAccount = await this._usersService.createInternalAccount(
       registerDTO,
       RoleEnum.GUEST,
     );
-    return await this._createToken(internalAccount);
+    this._sendEmailConfirm(internalAccount);
   }
 
   async login(loginDTO: LoginDto): Promise<{
@@ -185,8 +179,7 @@ export class AuthService {
     refreshToken: string;
     accessTokenExpire: Date;
   }> {
-    const internalAccount =
-      await this._usersService.checkInternalAccount(loginDTO);
+    const internalAccount = await this._usersService.checkInternalAccount(loginDTO);
     return await this._createToken(internalAccount);
   }
 
@@ -229,18 +222,8 @@ export class AuthService {
     };
   }
 
-  async sendEmailConfirm(request: Request): Promise<void> {
-    const { accountId } = (request as any)['user'];
-    const internalAccount =
-      await this._usersService.findOneInternalAccountByAccountId(accountId);
-    if (internalAccount.emailStatusId == EmailStatusEnum.VERIFIED) {
-      throw new ConflictException('Địa chỉ email đã verify!');
-    }
-    if (internalAccount.emailStatusId == EmailStatusEnum.PENDING_VERIFICATION) {
-      throw new ConflictException('Địa chỉ email đang xác thực!');
-    }
-    const { confirmationToken, confirmationTokenExpire } =
-      await this._createConfirmationToken({ accountId });
+  async _sendEmailConfirm(internalAccount: InternalAccount): Promise<void> {
+    const { confirmationToken, confirmationTokenExpire } = await this._createConfirmationToken({ accountId: internalAccount.accountId });
     internalAccount.confirmationToken = confirmationToken;
     internalAccount.confirmationTokenExpire = confirmationTokenExpire;
     this._mailerService.sendMail({

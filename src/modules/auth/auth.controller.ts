@@ -16,9 +16,9 @@ export class AuthController {
   @Public()
   @Post('register')
   async register(@Body() registerDTO: RegisterDTO) {
-    const data = await this.authService.register(registerDTO);
-    const message = 'Đăng ký tài khoản thành công!';
-    return { ...data, message };
+    await this.authService.register(registerDTO);
+    const message = 'Vui lòng xác thực địa chỉ email!';
+    return { message };
   }
 
   @ApiOperation({ summary: 'Đăng nhập bằng tài khoản đã đăng ký' })
@@ -47,14 +47,6 @@ export class AuthController {
     return { ...data, message };
   }
 
-  @ApiOperation({ summary: 'Gửi email xác nhận' })
-  @Post('email-confirm')
-  async sendEmailConfirm(@Req() request) {
-    this.authService.sendEmailConfirm(request);
-    const message = 'Gửi email xác nhận thành công!';
-    return { message };
-  }
-
   @Patch('email-confirm')
   async verifyEmailConfirm(
     @Param('confirmationToken') confirmationToken: string,
@@ -63,20 +55,4 @@ export class AuthController {
     const message = 'Xác nhận email thành công!';
     return { message };
   }
-
-  // @ApiOperation({ summary: 'Đăng nhập bằng Oauth' })
-  // @Get(':provider')
-  // @Redirect()
-  // async providerLogin(@Param('provider') provider: string): Promise<HttpRedirectResponse> {
-  //   const httpRedirectResponse: HttpRedirectResponse = await this.authService.buildHttpRedirectResProviderLogin(provider);
-  //   return httpRedirectResponse;
-  // }
-
-  // @ApiOperation({ summary: 'Xử lý authorization code do Oauth trả về sau khi Oauth ủy quyền' })
-  // @Get("callback/:provider")
-  // @Redirect()
-  // async providerCallback(@Param('provider') provider: string, @Query('code') code: string): Promise<HttpRedirectResponse> {
-  //   const httpRedirectResponse: HttpRedirectResponse = await this.authService.buildHttpRedirectResProviderCallback(provider, code);
-  //   return httpRedirectResponse;
-  // }
 }
