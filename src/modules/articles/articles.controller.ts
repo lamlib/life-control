@@ -13,6 +13,7 @@ import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @ApiTags('Articles')
 @Controller('api/v1/articles')
@@ -33,6 +34,7 @@ export class ArticlesController {
     return await this.articlesService.create(createArticleDto, accountId);
   }
 
+  @Public()
   @Get()
   @ApiOperation({ summary: 'Get all articles' })
   findAll() {
