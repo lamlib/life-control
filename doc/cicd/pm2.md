@@ -19,7 +19,7 @@ $ pm2 start --name <your-application-name> -i max npm -- run <script>
 ```bash
 $ pm2 start --name <your-application-name> -i max <your-entry-point> 
 ```
-
+pm2 start --name backend-app 
 **Nếu ứng dụng đang chạy, cần xử lý để zero downtime**
 - Backup artifact cũ và xuất bản artifact mới 
 - Reload thay vì restart
