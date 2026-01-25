@@ -9,7 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    # Build cho cả PR và push vào master
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,7 +26,13 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Run tests (optional)
+        run: npm test
+        continue-on-error: false
+
       - name: Package artifact (dist + node_modules)
+        # Chỉ package khi push vào master
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         run: |
           mkdir -p backend-artifact
           cp -r dist backend-artifact/
@@ -35,6 +42,8 @@ jobs:
           tar -czf backend.tar.gz backend-artifact
 
       - name: Upload artifact
+        # Chỉ upload khi push vào master
+        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: backend-build
@@ -43,6 +52,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    # CHỈ deploy khi push vào master (đã merge)
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
     steps:
@@ -64,18 +74,13 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
 
-          # Backup code cũ
           ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST 'mkdir -p /var/www/backups && cp -r /var/www/backend /var/www/backups/backend_$(date +%s) 2>/dev/null || true'
 
-          # Tạo file .env tạm thời trên runner
           echo "$DEPLOY_ENV" > .env.production
-
-          # Upload artifact mới
-          # Upload cả artifact và .env
+          
           scp -i ~/.ssh/deploy_key backend.tar.gz $DEPLOY_USER@$DEPLOY_HOST:/var/www/
           scp -i ~/.ssh/deploy_key .env.production $DEPLOY_USER@$DEPLOY_HOST:/var/www/
 
-          # Giải nén và setup
           ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
             cd /var/www
             rm -rf backend
@@ -85,7 +90,7 @@ jobs:
             cd /var/www/backend
             export NODE_ENV=production
             pm2 reload backend-app || pm2 start npm --name backend-app -i max -- run start:prod
-          '
+          EOF
 
       - name: Notify deployment
         if: success()
