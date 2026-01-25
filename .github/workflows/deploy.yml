@@ -74,16 +74,46 @@ jobs:
           scp -i ~/.ssh/deploy_key backend.tar.gz $DEPLOY_USER@$DEPLOY_HOST:/var/www/
           scp -i ~/.ssh/deploy_key .env.production $DEPLOY_USER@$DEPLOY_HOST:/var/www/
 
-          # Giải nén và reload
+          # Deploy với zero-downtime
           ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST <<-'ENDSSH'
+          set -e  # Exit on error
           cd /var/www
-          rm -rf backend
-          mkdir backend
-          tar -xzf backend.tar.gz -C backend --strip-components=1
-          mv /var/www/.env.production /var/www/backend/.env
+          
+          # Giải nén vào thư mục mới (tránh xóa thư mục đang chạy)
+          rm -rf backend-new
+          mkdir backend-new
+          tar -xzf backend.tar.gz -C backend-new --strip-components=1
+          
+          # Copy .env vào thư mục mới
+          cp .env.production backend-new/.env.production
+          
+          # Atomic swap: đổi tên thư mục cũ và mới
+          if [ -d "backend" ]; then
+            mv backend backend-old
+          fi
+          mv backend-new backend
+          
+          # Reload PM2 (zero downtime)
           cd /var/www/backend
           export NODE_ENV=production
-          pm2 reload backend-app || pm2 start npm --name backend-app -i max -- run start:prod
+          pm2 reload backend-app --update-env || pm2 start npm --name backend-app -i max -- run start:prod
+          
+          # Đợi app khởi động
+          sleep 3
+          
+          # Verify app đang chạy
+          echo "=== PM2 Status ==="
+          pm2 status
+          
+          # Kiểm tra logs
+          echo "=== Recent Logs ==="
+          pm2 logs backend-app --nostream --lines 10
+          
+          # Cleanup thư mục cũ
+          cd /var/www
+          rm -rf backend-old
+          
+          echo "Deploy completed successfully!"
           ENDSSH
 
       - name: Notify deployment
