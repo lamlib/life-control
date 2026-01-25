@@ -26,37 +26,24 @@ import { ExternalAccount } from '../users/entities/external-account.entity';
 @Injectable()
 export class AuthService {
   constructor(
+    // Repositories
     @InjectRepository(Token)
     private readonly _tokenRepository: Repository<Token>,
-
     @InjectRepository(Role)
     private readonly _roleRepository: Repository<Role>,
 
+    // Services
     private readonly _usersService: UsersService,
-
     private readonly _configService: ConfigService,
-
     private readonly _jwtService: JwtService,
-
     private readonly _mailerService: MailerService,
   ) { }
 
-  private async _createAccessToken(
-    payload: Record<string, any>,
-  ): Promise<{ accessToken: string; accessTokenExpire: Date }> {
+  private async _createAccessToken(payload: Record<string, any>): Promise<{ accessToken: string; accessTokenExpire: Date }> {
     const accessToken = await this._jwtService.signAsync(payload, {
-      expiresIn: this._configService.get<string>(
-        'jwt.accessTokenExpire.string',
-      ),
+      expiresIn: this._configService.get<string>('jwt.accessTokenExpire.string'),
     });
-    const accessTokenExpire = new Date(
-      Date.now() +
-      parseInt(
-        this._configService.get<string>(
-          'jwt.accessTokenExpire.number',
-        ) as string,
-      ),
-    );
+    const accessTokenExpire = new Date(Date.now() + parseInt(this._configService.get<string>('jwt.accessTokenExpire.number') as string));
     return {
       accessToken,
       accessTokenExpire,
@@ -161,16 +148,8 @@ export class AuthService {
     }
   }
 
-  /**
-   * Đăng ký tài khoản nội bộ
-   * - Quyền mặc định là khách
-   * - Trả về token ngay
-   */
-  async register(registerDTO: RegisterDTO){
-    const internalAccount = await this._usersService.createInternalAccount(
-      registerDTO,
-      RoleEnum.GUEST,
-    );
+  async register(registerDTO: RegisterDTO) {
+    const internalAccount = await this._usersService.createInternalAccount(registerDTO, RoleEnum.GUEST);
     this._sendEmailConfirm(internalAccount);
   }
 
@@ -217,9 +196,11 @@ export class AuthService {
   }
 
   async profile(request: Request) {
-    return {
-      user: (request as any)['user'],
-    };
+    const { accountId } = (request as any)['user'] ?? {};
+    if(accountId) {
+      const user = await this._usersService.findOneAccountById(accountId);
+      return user;
+    }
   }
 
   async _sendEmailConfirm(internalAccount: InternalAccount): Promise<void> {
@@ -393,91 +374,4 @@ export class AuthService {
     });
     account.roleId = role.id;
   }
-
-  // async buildHttpRedirectResProviderLogin(providerName: string): Promise<HttpRedirectResponse> {
-  //   const provider = await this._usersService.findOneExternalProviderByName(providerName);
-  //   const params = new URLSearchParams({
-  //     client_id: provider.clientId,
-  //     redirect_uri: provider.redirectUri,
-  //     response_type: 'code',
-  //     scope: provider.scope,
-  //     state: provider.name, //TODO: Tìm hiểu tại sao lại là provider name
-  //   }).toString();
-
-  //   const httpRedirectResponse: HttpRedirectResponse = {
-  //     url: `${provider.authUrl}?${params}`,
-  //     statusCode: HttpStatus.FOUND
-  //   };
-
-  //   return httpRedirectResponse;
-  // }
-
-  // _normalizeExternalUser(providerName: string, data: any) {
-  //   switch (providerName) {
-  //     case 'google':
-  //       return {
-  //         id: data.id,
-  //         email: data.email,
-  //         name: data.name,
-  //         avatar: data.picture,
-  //       };
-  //     case 'github':
-  //       return {
-  //         id: data.id,
-  //         email: data.email,
-  //         name: data.name,
-  //         avatar: data.picture,
-  //       };
-  //     default:
-  //       throw new BadRequestException();
-  //   }
-  // }
-
-  // async buildHttpRedirectResProviderCallback(providerName: string, authorizationCode: string): Promise<HttpRedirectResponse> {
-  //   const provider = await this._usersService.findOneExternalProviderByName(providerName);
-
-  //   // Prase 1: Exchange token
-  //   const rawToken = await fetch(provider.tokenUrl, {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/x-www-form-urlencoded',
-  //     },
-  //     body: new URLSearchParams({
-  //       client_id: provider.clientId,
-  //       client_secret: provider.clientSecret,
-  //       code: authorizationCode,
-  //       redirect_uri: provider.redirectUri, //TODO: Need to understand this field
-  //       grant_type: 'authorization_code',
-  //     })
-  //   });
-
-  //   if (!rawToken.ok) {
-  //     throw new UnauthorizedException(`Fetch access token from OAuth faild with status ${rawToken.}`);
-  //   }
-
-  //   const token = await rawToken.json();
-
-  //   // Prase 2: Get user info
-  //   const rawExternalUser = await fetch(provider.userInfoUrl, {
-  //     headers: {
-  //       Authorization: `Bearer ${token.access_token}`,
-  //     },
-  //   });
-
-  //   const externalUser = rawExternalUser.json();
-
-  //   // Prase 3: Normalize user
-  //   const safeExternalUser = this._normalizeExternalUser(providerName, externalUser);
-
-  //   // Prase 4: Find / create internal user
-  //   const savedExternalAccount = await this._usersService.checkExternalAccount(String(provider.id), safeExternalUser)
-  //   const tokens = await this._createToken(savedExternalAccount);
-
-  //   // Prase 5: Issue session or jwt
-  //   const httpRedirectResponse: HttpRedirectResponse = {
-  //     statusCode: 302,
-  //     url: '?' + tokens
-  //   }
-  //   return httpRedirectResponse;
-  // }
 }

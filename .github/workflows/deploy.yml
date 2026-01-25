@@ -67,18 +67,23 @@ jobs:
           # Backup code cũ
           ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST 'mkdir -p /var/www/backups && cp -r /var/www/backend /var/www/backups/backend_$(date +%s) 2>/dev/null || true'
 
-          # Upload artifact mới
-          scp -i ~/.ssh/deploy_key backend.tar.gz $DEPLOY_USER@$DEPLOY_HOST:/var/www/
+          # Tạo file .env tạm thời trên runner
+          echo "$DEPLOY_ENV" > .env.production
 
-          # Giải nén và reload bằng PM2
-          ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST '
-            cd /var/www && \
-            rm -rf backend && \
-            mkdir backend && \
-            tar -xzf backend.tar.gz -C backend --strip-components=1 && \
-            echo "$DEPLOY_ENV" > /var/www/backend/.env.production && \
-            cd /var/www/backend && \
-            export NODE_ENV=production && \
+          # Upload artifact mới
+          # Upload cả artifact và .env
+          scp -i ~/.ssh/deploy_key backend.tar.gz $DEPLOY_USER@$DEPLOY_HOST:/var/www/
+          scp -i ~/.ssh/deploy_key .env.production $DEPLOY_USER@$DEPLOY_HOST:/var/www/
+
+          # Giải nén và setup
+          ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
+            cd /var/www
+            rm -rf backend
+            mkdir backend
+            tar -xzf backend.tar.gz -C backend --strip-components=1
+            mv /var/www/.env.production /var/www/backend/.env
+            cd /var/www/backend
+            export NODE_ENV=production
             pm2 reload backend-app || pm2 start npm --name backend-app -i max -- run start:prod
           '
 

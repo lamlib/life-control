@@ -43,8 +43,10 @@ export class AuthController {
   @Get('profile')
   async profile(@Req() request: Request) {
     const data = await this.authService.profile(request);
-    const message = 'Đọc hồ sơ người dùng thành công!';
-    return { ...data, message };
+    if(data) {
+      return { ...data, message: 'Đọc hồ sơ người dùng thành công!' };
+    }
+    return { message: 'Chưa đăng nhập!' };
   }
 
   @Patch('email-confirm')
