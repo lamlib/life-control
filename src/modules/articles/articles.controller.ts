@@ -41,6 +41,7 @@ export class ArticlesController {
     return this.articlesService.findAll();
   }
 
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Get article by ID' })
   @ApiParam({ name: 'id', type: Number })
