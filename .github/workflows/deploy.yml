@@ -84,7 +84,7 @@ jobs:
           cd /var/www/backend
           export NODE_ENV=production
           pm2 reload backend-app || pm2 start npm --name backend-app -i max -- run start:prod
-          '
+          ENDSSH
 
       - name: Notify deployment
         if: success()
