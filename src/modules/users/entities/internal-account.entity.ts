@@ -23,7 +23,7 @@ export class InternalAccount {
   emailAddress: string;
 
   @ApiProperty({ description: 'Token được sinh ra lúc người dùng xác nhận địa chỉ email, sau khi dùng xong hoặc hết hạn thì xóa' })
-  @Column({ type: 'varchar', length: 128, nullable: true })
+  @Column({ type: 'text', nullable: true })
   confirmationToken: string | null;
 
   @ApiProperty({ description: 'Thời hạn token xác nhận email hết hạn, dùng để kiểm tra tính hợp lệ của token xác nhận email, tồn tại khi token tồn tại, xóa khi token không tồn tại' })
