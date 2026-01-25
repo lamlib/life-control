@@ -18,7 +18,7 @@ export class AuthGuard implements CanActivate {
     if (isPublic) return true;
     const request = context.switchToHttp().getRequest();
     const token = await this._authService.extractTokenFromHeader(request);
-    request['user'] = this._authService.parsePayload(token);
+    request['user'] = await this._authService.parsePayload(token);
     return true;
   }
 }
