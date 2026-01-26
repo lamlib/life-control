@@ -37,29 +37,36 @@ export class ArticlesController {
   @Public()
   @Get()
   @ApiOperation({ summary: 'Get all articles' })
-  findAll() {
-    return this.articlesService.findAll();
+  async findAll() {
+    return await this.articlesService.findAll();
+  }
+
+  @Get('/me')
+  @ApiOperation({ summary: 'Get all articles by Account ID' })
+  async findAllByAccountId(@Req() request: Request) {
+    const { accountId } = request['user'];
+    return await this.articlesService.findAllByAccountId(accountId);
   }
 
   @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Get article by ID' })
   @ApiParam({ name: 'id', type: Number })
-  findOne(@Param('id') id: string) {
-    return this.articlesService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.articlesService.findOne(+id);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update article by ID' })
   @ApiParam({ name: 'id', type: Number })
-  update(@Param('id') id: string, @Body() updateArticleDto: UpdateArticleDto) {
-    return this.articlesService.update(+id, updateArticleDto);
+  async update(@Param('id') id: string, @Body() updateArticleDto: UpdateArticleDto) {
+    return await this.articlesService.update(+id, updateArticleDto);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete article by ID' })
   @ApiParam({ name: 'id', type: Number })
-  remove(@Param('id') id: string) {
-    return this.articlesService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.articlesService.remove(+id);
   }
 }

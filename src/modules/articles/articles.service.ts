@@ -83,6 +83,27 @@ export class ArticlesService {
     }));
   }
 
+  async findAllByAccountId(accountId: number) {
+    const articles = await this.articleRepository.find({
+      relations: ['articleTags', 'articleTags.tag'],
+      where: {
+        accountId,
+      }
+    });
+
+    return articles.map((article) => ({
+      id: article.id,
+      title: article.title,
+      description: article.description,
+      content: article.content,
+      thumbnail: article.thumbnail,
+      authorName: article.authorName,
+      publishedAt: article.publishedAt,
+      viewCount: article.viewCount,
+      tags: article.articleTags.map((at) => at.tag?.name).filter(Boolean), // lấy name tag
+    }));
+  }
+
   async findOne(id: number) {
     await this.articleRepository.increment({ id }, 'viewCount', 1);
     return this.articleRepository.findOneBy({ id });
