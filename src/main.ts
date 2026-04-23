@@ -11,6 +11,8 @@ async function bootstrap() {
     cors: true,
   });
 
+  app.setGlobalPrefix('blog');
+
   const config = new DocumentBuilder()
     .setTitle('Một blog nhỏ')
     .setDescription('Blog này chuyên về lập trình và trải nghiệm')
@@ -18,7 +20,7 @@ async function bootstrap() {
     .build();
 
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  SwaggerModule.setup('api', app, documentFactory, { useGlobalPrefix: true });
 
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new TransformInterceptor(app.get(Reflector)));

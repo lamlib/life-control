@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { ArticleTagService } from './article-tag.service';
 import { CreateArticleTagDto } from './dto/create-article-tag.dto';
 
-@Controller('article-tag')
+@Controller('api/v1/article-tag')
 export class ArticleTagController {
   constructor(private readonly articleTagService: ArticleTagService) {}
 

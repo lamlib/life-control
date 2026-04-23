@@ -27,18 +27,18 @@ jobs:
 
       - name: Package artifact (dist + node_modules)
         run: |
-          mkdir -p backend-artifact
-          cp -r dist backend-artifact/
-          cp -r node_modules backend-artifact/
-          cp package.json backend-artifact/
-          cp package-lock.json backend-artifact/
-          tar -czf backend.tar.gz backend-artifact
+          mkdir -p life-control-artifact
+          cp -r dist life-control-artifact/
+          cp -r node_modules life-control-artifact/
+          cp package.json life-control-artifact/
+          cp package-lock.json life-control-artifact/
+          tar -czf life-control.tar.gz life-control-artifact
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: backend-build
-          path: backend.tar.gz
+          name: life-control-build
+          path: life-control.tar.gz
 
   deploy:
     needs: build
@@ -49,7 +49,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: backend-build
+          name: life-control-build
           path: .
 
       - name: Deploy to server
@@ -65,13 +65,13 @@ jobs:
           ssh-keyscan -H $DEPLOY_HOST >> ~/.ssh/known_hosts
 
           # Backup code cũ
-          ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST 'mkdir -p /var/www/backups && cp -r /var/www/backend /var/www/backups/backend_$(date +%s) 2>/dev/null || true'
+          ssh -i ~/.ssh/deploy_key $DEPLOY_USER@$DEPLOY_HOST 'mkdir -p /var/www/backups && cp -r /var/www/life-control /var/www/backups/life-control_$(date +%s) 2>/dev/null || true'
 
           # Tạo file .env tạm thời
           echo "$DEPLOY_ENV" > .env.production
           
           # Upload artifact và .env
-          scp -i ~/.ssh/deploy_key backend.tar.gz $DEPLOY_USER@$DEPLOY_HOST:/var/www/
+          scp -i ~/.ssh/deploy_key life-control.tar.gz $DEPLOY_USER@$DEPLOY_HOST:/var/www/
           scp -i ~/.ssh/deploy_key .env.production $DEPLOY_USER@$DEPLOY_HOST:/var/www/
 
           # Deploy với zero-downtime
@@ -80,23 +80,34 @@ jobs:
           cd /var/www
           
           # Giải nén vào thư mục mới (tránh xóa thư mục đang chạy)
-          rm -rf backend-new
-          mkdir backend-new
-          tar -xzf backend.tar.gz -C backend-new --strip-components=1
+          rm -rf life-control-new
+          mkdir life-control-new
+          tar -xzf life-control.tar.gz -C life-control-new --strip-components=1
           
           # Copy .env vào thư mục mới
-          cp .env.production backend-new/.env.production
+          cp .env.production life-control-new/.env.production
           
           # Atomic swap: đổi tên thư mục cũ và mới
-          if [ -d "backend" ]; then
-            mv backend backend-old
+          if [ -d "life-control" ]; then
+            mv life-control life-control-old
           fi
-          mv backend-new backend
+          mv life-control-new life-control
           
           # Reload PM2 (zero downtime)
-          cd /var/www/backend
+          cd /var/www/life-control
           export NODE_ENV=production
-          pm2 reload backend-app --update-env || pm2 start npm --name backend-app -i max -- run start:prod
+          # Prefer the canonical process name going forward.
+          if pm2 describe life-control-app >/dev/null 2>&1; then
+            pm2 reload life-control-app --update-env
+          elif pm2 describe backend-app >/dev/null 2>&1; then
+            # One-time migration from legacy naming: rename in-place (avoid two listeners).
+            if ! pm2 restart backend-app --name life-control-app --update-env; then
+              pm2 delete backend-app || true
+              pm2 start npm --name life-control-app -i max -- run start:prod
+            fi
+          else
+            pm2 start npm --name life-control-app -i max -- run start:prod
+          fi
           
           # Đợi app khởi động
           sleep 3
@@ -107,11 +118,13 @@ jobs:
           
           # Kiểm tra logs
           echo "=== Recent Logs ==="
-          pm2 logs backend-app --nostream --lines 10
+          pm2 logs life-control-app --nostream --lines 10
           
           # Cleanup thư mục cũ
           cd /var/www
-          rm -rf backend-old
+          rm -rf life-control-old
+          # Remove legacy deploy directory if it still exists (now canonical is /var/www/life-control)
+          rm -rf backend backend-old backend-new 2>/dev/null || true
           
           echo "Deploy completed successfully!"
           ENDSSH
