@@ -97,16 +97,16 @@ jobs:
           cd /var/www/life-control
           export NODE_ENV=production
           # Prefer the canonical process name going forward.
-          if pm2 describe life-control-app >/dev/null 2>&1; then
-            pm2 reload life-control-app --update-env
+          if pm2 describe life-control >/dev/null 2>&1; then
+            pm2 reload life-control --update-env
           elif pm2 describe backend-app >/dev/null 2>&1; then
             # One-time migration from legacy naming: rename in-place (avoid two listeners).
-            if ! pm2 restart backend-app --name life-control-app --update-env; then
+            if ! pm2 restart backend-app --name life-control --update-env; then
               pm2 delete backend-app || true
-              pm2 start npm --name life-control-app -i max -- run start:prod
+              pm2 start npm --name life-control -i max -- run start:prod
             fi
           else
-            pm2 start npm --name life-control-app -i max -- run start:prod
+            pm2 start npm --name life-control -i max -- run start:prod
           fi
           
           # Đợi app khởi động
@@ -118,7 +118,7 @@ jobs:
           
           # Kiểm tra logs
           echo "=== Recent Logs ==="
-          pm2 logs life-control-app --nostream --lines 10
+          pm2 logs life-control --nostream --lines 10
           
           # Cleanup thư mục cũ
           cd /var/www
